@@ -56,8 +56,11 @@ pip install -r requirements.txt -r requirements-dev.txt
 To install the published package:
 
 ```bash
-pip install pyutube --break-system-packages
+pip install pyutube
 ```
+
+> [!TIP]
+> If the installation or update does not work, try running the command with the `pip install pyutube --break-system-packages` flag.
 
 Then run `pyutube --help` to confirm the CLI is available.
 
@@ -66,8 +69,11 @@ Then run `pyutube --help` to confirm the CLI is available.
 To upgrade the installed package:
 
 ```bash
-pip install --upgrade pyutube --break-system-packages
+pip install --upgrade pyutube
 ```
+
+> [!TIP]
+> If the installation or update does not work, try running the command with the `pip install --upgrade pyutube --break-system-packages` flag.
 
 ## 🚀 Run It
 
