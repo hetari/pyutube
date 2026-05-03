@@ -121,14 +121,29 @@ class SingleDownloadService:
     def _temp_audio_filename(audio_filename: str, video_audio: Any) -> str:
         """Build a temporary filename that preserves the original audio container."""
         base_name, _ = os.path.splitext(audio_filename)
-        mime_type = getattr(video_audio, "mime_type", "")
-        if "/" in mime_type:
-            extension = f".{mime_type.split('/')[1].split(';')[0]}"
-        else:
-            default_filename = getattr(video_audio, "default_filename", "")
-            extension = os.path.splitext(default_filename)[1] or ".tmp"
+        extension = SingleDownloadService._audio_container_extension(video_audio)
 
-        return f"{base_name}__raw{extension}"
+        return f"{base_name}{extension}"
+
+    @staticmethod
+    def _audio_container_extension(video_audio: Any) -> str:
+        """Map the downloaded audio stream to a suitable temporary container."""
+        mime_type = getattr(video_audio, "mime_type", "") or ""
+        mime_type = mime_type.split(";")[0]
+
+        if mime_type == "audio/mp4":
+            return ".m4a"
+
+        if mime_type.startswith("audio/"):
+            container = mime_type.split("/", 1)[1]
+            return ".m4a" if container == "mp4" else f".{container}"
+
+        default_filename = getattr(video_audio, "default_filename", "")
+        extension = os.path.splitext(default_filename)[1]
+        if extension == ".mp4" and getattr(video_audio, "resolution", "") == "audio":
+            return ".m4a"
+
+        return extension or ".tmp"
 
     def download_video(
         self,

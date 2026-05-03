@@ -171,7 +171,7 @@ This project is licensed under the [MIT License](LICENSE).
 - [x] **Auto Update package if new version available**
 - [x] **Support Optional Numbering for Downloaded Playlist Videos**
 - [x] **Improve code health**
-- [ ] **Support downloading sounds (mp3 format not a audio/mp4)**
+- [x] **Support downloading sounds (mp3 format not a audio/mp4)**
 - [ ] **Support Subtitles Download**
 - [ ] **Support setting for downloading folder**
 - [ ] **Download Thumbnails with Videos and Audio**

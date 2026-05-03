@@ -81,6 +81,11 @@ def test_single_download_service_download_audio_success_and_error(monkeypatch):
     error_print = Mock()
     monkeypatch.setattr(single_module.error_console, "print", error_print)
 
+    audio_stream = SimpleNamespace(
+        default_filename="song.mp4",
+        mime_type="audio/mp4",
+        resolution="audio",
+    )
     file_service = Mock()
     file_service.generate_filename.return_value = "song_audio.mp3"
     file_service.save_file = Mock()
@@ -100,20 +105,20 @@ def test_single_download_service_download_audio_success_and_error(monkeypatch):
         video_service=Mock(),
     )
 
-    result = service.download_audio("video", "audio", title_number=2)
+    result = service.download_audio("video", audio_stream, title_number=2)
 
     assert result == "2__song_audio.mp3"
-    file_service.generate_filename.assert_called_once_with("audio", is_audio=True)
+    file_service.generate_filename.assert_called_once_with(audio_stream, is_audio=True)
     conflict_resolver.resolve.assert_called_once_with("video", "2__song_audio.mp3", "/downloads", True)
-    file_service.save_file.assert_called_once_with("audio", "2__song_audio__raw.tmp", "/downloads")
+    file_service.save_file.assert_called_once_with(audio_stream, "2__song_audio.m4a", "/downloads")
     audio_converter.convert_to_mp3.assert_called_once_with(
-        "/downloads/2__song_audio__raw.tmp",
+        "/downloads/2__song_audio.m4a",
         "/downloads/2__song_audio.mp3",
     )
 
     file_service.save_file.side_effect = RuntimeError("boom")
     with pytest.raises(SystemExit):
-        service.download_audio("video", "audio")
+        service.download_audio("video", audio_stream)
 
     error_print.assert_called()
 
@@ -225,10 +230,10 @@ def test_single_download_service_audio_conflict_uses_audio_flag():
     )
     file_service.save_file.assert_called_once_with(
         audio_stream,
-        "track_audio__raw.mp4",
+        "track_audio.m4a",
         "/tmp",
     )
     audio_converter.convert_to_mp3.assert_called_once_with(
-        "/tmp/track_audio__raw.mp4",
+        "/tmp/track_audio.m4a",
         "/tmp/track_audio.mp3",
     )

@@ -15,6 +15,8 @@ from pyutube.ui import error_console
 class VideoSearchService:
     """Create ``YouTube`` instances for a URL."""
 
+    DEFAULT_CLIENT = "ANDROID_VR"
+
     def __init__(self, url: str) -> None:
         self.url = url
 
@@ -40,7 +42,7 @@ class VideoSearchService:
     def _video_search(self) -> Any:
         return YouTube(
             self.url,
-            use_oauth=True,
-            allow_oauth_cache=True,
+            client=self.DEFAULT_CLIENT,
+            use_oauth=False,
             on_progress_callback=on_progress,
         )
