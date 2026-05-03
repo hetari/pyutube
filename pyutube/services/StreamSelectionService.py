@@ -18,7 +18,7 @@ class StreamSelectionService:
     def __init__(self, quality: str) -> None:
         self.quality = quality
 
-    @yaspin(text=colored("getting video streams", "green"), spinner=Spinners.point)
+    @yaspin(text=colored("getting media streams", "green"), spinner=Spinners.point)
     def get_available_resolutions(self, video: Any) -> AvailableVideoStreams:
         """Return resolution labels, sizes, and the related streams."""
         streams = video.streams

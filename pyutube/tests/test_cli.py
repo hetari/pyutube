@@ -95,3 +95,17 @@ def test_cli_branches(monkeypatch):
             version=False,
         )
     fake.get_playlist_links.assert_called_once()
+
+
+def test_cli_version_skips_update_check(monkeypatch):
+    check_updates = Mock()
+    print_mock = Mock()
+    monkeypatch.setattr("pyutube.cli.check_for_updates", check_updates)
+    monkeypatch.setattr("pyutube.cli.console.print", print_mock)
+    monkeypatch.setattr("pyutube.cli.sys.exit", Mock(side_effect=SystemExit))
+
+    with pytest.raises(SystemExit):
+        cli.pyutube(version=True, audio=False, video=False)
+
+    check_updates.assert_not_called()
+    print_mock.assert_called_once()

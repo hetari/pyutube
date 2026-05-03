@@ -1,5 +1,6 @@
 """Package update checks."""
 
+import re
 import subprocess
 import sys
 from dataclasses import dataclass
@@ -28,6 +29,16 @@ class UpdateChecker:
             "pyutube": PackageVersion("pyutube", __version__),
             "pytubefix": PackageVersion("pytubefix", pytubefix_version),
         }
+
+    @staticmethod
+    def _version_key(version: str) -> tuple[int, ...]:
+        """Return a sortable version key for simple dot-separated versions."""
+        parts = [part for part in re.split(r"\D+", version) if part]
+        return tuple(int(part) for part in parts)
+
+    def _should_upgrade(self, latest_version: str, current_version: str) -> bool:
+        """Return True only when the latest version is newer than the current one."""
+        return self._version_key(latest_version) > self._version_key(current_version)
 
     def _fetch_latest_version(self, package_name: str) -> Optional[str]:
         response = requests.get(
@@ -75,7 +86,11 @@ class UpdateChecker:
         try:
             for package_name, metadata in self.packages.items():
                 latest_version = self._fetch_latest_version(package_name)
-                if latest_version is None or latest_version == metadata.version:
+                if (
+                    latest_version is None
+                    or latest_version == metadata.version
+                    or not self._should_upgrade(latest_version, metadata.version)
+                ):
                     continue
 
                 console.print(

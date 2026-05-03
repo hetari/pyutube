@@ -86,11 +86,11 @@ def pyutube(
     video: bool = video_option,
     version: bool = version_option,
 ) -> None:
-    check_for_updates()
-
     if version:
         console.print(f"Pyutube {__version__}")
         sys.exit()
+
+    check_for_updates()
 
     if url is None:
         error_console.print("❗ Missing argument 'URL'.")
