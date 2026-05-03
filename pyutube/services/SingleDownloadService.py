@@ -6,6 +6,7 @@ from typing import Any, Optional
 
 from pytubefix.helpers import safe_filename
 
+from pyutube.services.AudioConversionService import AudioConversionService
 from pyutube.services.FileConflictResolver import FileConflictResolver
 from pyutube.services.FileService import FileService
 from pyutube.services.models import DownloadPreparation
@@ -26,6 +27,7 @@ class SingleDownloadService:
         video_service: Optional[Any] = None,
         file_service: Optional[Any] = None,
         conflict_resolver: Optional[Any] = None,
+        audio_converter: Optional[Any] = None,
     ) -> None:
         self.url = url
         self.path = path
@@ -36,6 +38,7 @@ class SingleDownloadService:
         self.conflict_resolver = conflict_resolver or FileConflictResolver(
             self.file_service
         )
+        self.audio_converter = audio_converter or AudioConversionService()
         self.video_service = video_service or VideoService(self.url, self.quality, self.path)
 
     def refresh_video_service(self) -> None:
@@ -93,12 +96,16 @@ class SingleDownloadService:
             self.path,
             True,
         )
+        temp_audio_filename = self._temp_audio_filename(audio_filename, video_audio)
+        temp_audio_path = os.path.join(self.path, temp_audio_filename)
+        audio_path = os.path.join(self.path, audio_filename)
 
         try:
             if self.is_audio:
                 console.print("⏳ Downloading the audio...", style="info")
 
-            self.file_service.save_file(video_audio, audio_filename, self.path)
+            self.file_service.save_file(video_audio, temp_audio_filename, self.path)
+            self.audio_converter.convert_to_mp3(temp_audio_path, audio_path)
         except Exception as error:
             error_console.print(
                 f"❗ Error (please report this in github issue: https://github.com/Hetari/pyutube/issues):\n {error}"
@@ -109,6 +116,19 @@ class SingleDownloadService:
             console.print("\n\n✅ Download completed", style="success")
 
         return audio_filename
+
+    @staticmethod
+    def _temp_audio_filename(audio_filename: str, video_audio: Any) -> str:
+        """Build a temporary filename that preserves the original audio container."""
+        base_name, _ = os.path.splitext(audio_filename)
+        mime_type = getattr(video_audio, "mime_type", "")
+        if "/" in mime_type:
+            extension = f".{mime_type.split('/')[1].split(';')[0]}"
+        else:
+            default_filename = getattr(video_audio, "default_filename", "")
+            extension = os.path.splitext(default_filename)[1] or ".tmp"
+
+        return f"{base_name}__raw{extension}"
 
     def download_video(
         self,

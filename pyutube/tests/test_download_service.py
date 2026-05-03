@@ -18,7 +18,7 @@ def test_download_service_delegates_to_worker(monkeypatch):
     worker.refresh_video_service = Mock()
     worker.prepare_download.return_value = preparation
     worker.download.return_value = True
-    worker.download_audio.return_value = "audio.m4a"
+    worker.download_audio.return_value = "audio.mp3"
     worker.download_video.return_value = "720p"
     playlist_service = Mock()
 

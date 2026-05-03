@@ -50,9 +50,10 @@ def test_single_download_service_download_routes(monkeypatch):
         video_service=video_service,
         file_service=Mock(),
         conflict_resolver=Mock(),
+        audio_converter=Mock(),
     )
     service.prepare_download = Mock(return_value=preparation)
-    service.download_audio = Mock(return_value="audio.m4a")
+    service.download_audio = Mock(return_value="audio.mp3")
     service.download_video = Mock(return_value="merged")
 
     service.is_audio = True
@@ -81,10 +82,11 @@ def test_single_download_service_download_audio_success_and_error(monkeypatch):
     monkeypatch.setattr(single_module.error_console, "print", error_print)
 
     file_service = Mock()
-    file_service.generate_filename.return_value = "song_audio.m4a"
+    file_service.generate_filename.return_value = "song_audio.mp3"
     file_service.save_file = Mock()
     conflict_resolver = Mock()
-    conflict_resolver.resolve.return_value = "2__song_audio.m4a"
+    conflict_resolver.resolve.return_value = "2__song_audio.mp3"
+    audio_converter = Mock()
 
     service = SingleDownloadService(
         "https://example.com",
@@ -94,15 +96,20 @@ def test_single_download_service_download_audio_success_and_error(monkeypatch):
         make_playlist_in_order=True,
         file_service=file_service,
         conflict_resolver=conflict_resolver,
+        audio_converter=audio_converter,
         video_service=Mock(),
     )
 
     result = service.download_audio("video", "audio", title_number=2)
 
-    assert result == "2__song_audio.m4a"
+    assert result == "2__song_audio.mp3"
     file_service.generate_filename.assert_called_once_with("audio", is_audio=True)
-    conflict_resolver.resolve.assert_called_once_with("video", "2__song_audio.m4a", "/downloads", True)
-    file_service.save_file.assert_called_once_with("audio", "2__song_audio.m4a", "/downloads")
+    conflict_resolver.resolve.assert_called_once_with("video", "2__song_audio.mp3", "/downloads", True)
+    file_service.save_file.assert_called_once_with("audio", "2__song_audio__raw.tmp", "/downloads")
+    audio_converter.convert_to_mp3.assert_called_once_with(
+        "/downloads/2__song_audio__raw.tmp",
+        "/downloads/2__song_audio.mp3",
+    )
 
     file_service.save_file.side_effect = RuntimeError("boom")
     with pytest.raises(SystemExit):
@@ -127,6 +134,7 @@ def test_single_download_service_download_video_success_and_error(monkeypatch):
     conflict_resolver.resolve.return_value = "clip 720p.mp4"
     video_service = Mock()
     video_service.merging = Mock()
+    audio_converter = Mock()
 
     service = SingleDownloadService(
         "https://example.com",
@@ -134,9 +142,10 @@ def test_single_download_service_download_video_success_and_error(monkeypatch):
         "720p",
         file_service=file_service,
         conflict_resolver=conflict_resolver,
+        audio_converter=audio_converter,
         video_service=video_service,
     )
-    service.download_audio = Mock(return_value="song audio.m4a")
+    service.download_audio = Mock(return_value="song audio.mp3")
 
     result = service.download_video("video", "stream", "audio", title_number=3)
 
@@ -145,7 +154,7 @@ def test_single_download_service_download_video_success_and_error(monkeypatch):
     conflict_resolver.resolve.assert_called_once_with("video", "clip 720p.mp4", "/downloads", False)
     file_service.save_file.assert_called_once_with("stream", "clip 720p.mp4", "/downloads")
     service.download_audio.assert_called_once_with("video", "audio", 3)
-    video_service.merging.assert_called_once_with("safe-clip 720p.mp4", "safe-song audio.m4a")
+    video_service.merging.assert_called_once_with("safe-clip 720p.mp4", "safe-song audio.mp3")
 
     file_service.save_file.side_effect = RuntimeError("boom")
     with pytest.raises(SystemExit):
@@ -191,9 +200,10 @@ def test_single_download_service_audio_conflict_uses_audio_flag():
         mime_type="audio/mp4",
     )
     file_service = Mock()
-    file_service.generate_filename.return_value = "track_audio.m4a"
+    file_service.generate_filename.return_value = "track_audio.mp3"
     conflict_resolver = Mock()
-    conflict_resolver.resolve.return_value = "track_audio.m4a"
+    conflict_resolver.resolve.return_value = "track_audio.mp3"
+    audio_converter = Mock()
 
     service = SingleDownloadService(
         "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
@@ -202,13 +212,23 @@ def test_single_download_service_audio_conflict_uses_audio_flag():
         is_audio=True,
         file_service=file_service,
         conflict_resolver=conflict_resolver,
+        audio_converter=audio_converter,
     )
 
     service.download_audio(video, audio_stream)
 
     conflict_resolver.resolve.assert_called_once_with(
         video,
-        "track_audio.m4a",
+        "track_audio.mp3",
         "/tmp",
         True,
+    )
+    file_service.save_file.assert_called_once_with(
+        audio_stream,
+        "track_audio__raw.mp4",
+        "/tmp",
+    )
+    audio_converter.convert_to_mp3.assert_called_once_with(
+        "/tmp/track_audio__raw.mp4",
+        "/tmp/track_audio.mp3",
     )

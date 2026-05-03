@@ -12,7 +12,7 @@ class FileService:
     def generate_filename(self, media: Any, is_audio: bool = False, filename: str = ""):
         """Build a filename from the stream metadata."""
         file_type = "audio" if is_audio else media.resolution
-        extension = ".m4a" if is_audio else f".{media.mime_type.split('/')[1]}"
+        extension = ".mp3" if is_audio else f".{media.mime_type.split('/')[1]}"
         title = filename if filename else media.default_filename.split(".")[0]
         title = safe_filename(title)
 

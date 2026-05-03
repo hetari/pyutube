@@ -26,7 +26,7 @@ def test_file_conflict_resolver_renames_existing_file(monkeypatch):
     video = object()
     file_service = Mock()
     file_service.is_file_exists.return_value = True
-    file_service.generate_filename.return_value = "renamed.m4a"
+    file_service.generate_filename.return_value = "renamed.mp3"
 
     resolver = FileConflictResolver(file_service)
     monkeypatch.setattr(
@@ -35,9 +35,9 @@ def test_file_conflict_resolver_renames_existing_file(monkeypatch):
     )
     monkeypatch.setattr("builtins.input", lambda prompt: "new name")
 
-    result = resolver.resolve(video, "old.m4a", "/tmp", True)
+    result = resolver.resolve(video, "old.mp3", "/tmp", True)
 
-    assert result == "renamed.m4a"
+    assert result == "renamed.mp3"
     file_service.generate_filename.assert_called_once_with(video, True, "new name")
 
 
@@ -51,4 +51,4 @@ def test_file_conflict_resolver_cancel_exits(monkeypatch):
     )
 
     with pytest.raises(SystemExit):
-        resolver.resolve(object(), "old.m4a", "/tmp", True)
+        resolver.resolve(object(), "old.mp3", "/tmp", True)
