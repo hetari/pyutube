@@ -1,0 +1,10 @@
+[run]
+branch = True
+source = pyutube
+
+[report]
+show_missing = True
+skip_covered = False
+omit =
+    pyutube/tests/*
+    pyutube/__main__.py

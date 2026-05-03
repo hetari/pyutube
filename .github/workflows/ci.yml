@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt -r requirements-dev.txt
+
+      - name: Compile package
+        run: python -m compileall pyutube
+
+      - name: Run tests
+        run: coverage run -m pytest pyutube/tests -q
+
+      - name: Coverage report
+        run: coverage report --fail-under=80
+
+      - name: Lint
+        run: ruff check pyutube
+
+      - name: Type check
+        run: mypy pyutube
