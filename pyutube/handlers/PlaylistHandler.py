@@ -1,92 +1,79 @@
 import os
 import re
 import sys
-import threading
+from concurrent.futures import ThreadPoolExecutor
 
-from pytubefix.helpers import safe_filename
 from pytubefix import Playlist
+from pytubefix.helpers import safe_filename
 
-from pyutube.utils import console, asking_video_or_audio, ask_playlist_video_names, ask_for_make_playlist_in_order
+from pyutube.utils import (
+    ask_for_make_playlist_in_order,
+    ask_playlist_video_names,
+    asking_video_or_audio,
+    console,
+)
 
 
 class PlaylistHandler:
-    playlist_videos = []
-
     def __init__(self, url: str, path: str):
-        self.url: str = url
-        self.path: str = path
+        self.url = url
+        self.path = path
+        self.playlist_videos = []
 
     def process_playlist(self):
-        """
-        Process the playlist by asking for the audio or video, downloading the playlist,
-        then asking for which video to download and downloading it.
-        """
+        """Collect playlist metadata and ask the user what to download."""
         console.print("Processing playlist...")
 
-        try:
-            is_audio = asking_video_or_audio()
-        except TypeError:
-            # If the user cancelled, return
+        is_audio = asking_video_or_audio()
+        if is_audio is None:
             console.print("Cancelled")
-            return
+            return None
 
         console.print("Downloading playlist...")
         playlist = Playlist(self.url)
 
-        p_title = playlist.title
-        p_total = playlist.length
-        p_videos = playlist.videos
+        playlist_title = playlist.title
+        playlist_total = playlist.length
+        playlist_videos = playlist.videos
 
         make_in_order = ask_for_make_playlist_in_order()
-        console.print(f"{'✅' if make_in_order else '❌'} Make playlist in order", style="info")
+        if make_in_order is None:
+            console.print("Cancelled")
+            return None
+
+        console.print(
+            f"{'✅' if make_in_order else '❌'} Make playlist in order",
+            style="info",
+        )
         console.print()
         console.print("Fetching playlist videos...", style="info")
-        self.get_all_playlist_videos_title(p_videos)
+        self.get_all_playlist_videos_title(playlist_videos)
 
-        # if make_in_order:
-        #     self.playlist_videos.reverse()
-
-        for index, video_and_id in enumerate(self.playlist_videos):
-            if make_in_order:
-                new_video_title = f"{index + 1}__{video_and_id[0]}"
-            else:
-                new_video_title = video_and_id[0]
-            self.playlist_videos[index] = (new_video_title, video_and_id[1])
+        if make_in_order:
+            self.playlist_videos = [
+                (f"{index + 1}__{title}", video_id)
+                for index, (title, video_id) in enumerate(self.playlist_videos)
+            ]
 
         console.print("Checking if the videos are already downloaded...")
-        new_path = self.check_for_downloaded_videos(p_title, p_total)
+        new_path = self.check_for_downloaded_videos(playlist_title, playlist_total)
 
-        console.print("Chose what video you want to download", style="info")
+        console.print("Choose which videos you want to download", style="info")
         videos_selected = ask_playlist_video_names(self.playlist_videos)
+        if videos_selected is None:
+            console.print("Cancelled")
+            return None
 
         return new_path, is_audio, videos_selected, make_in_order, self.playlist_videos
 
-    def fetch_title_thread(self, video, index, results):
-        """
-        Fetch all playlist video titles concurrently but maintain the order.
-        """
-        video_title = safe_filename(video.title)
-        video_id = video.video_id
-        results[index] = (video_title, video_id)
-
     def get_all_playlist_videos_title(self, videos):
-        """
-        Fetch all playlist video titles concurrently but maintain the order.
-        """
-        total_videos = len(videos)
-        results = [None] * total_videos
-        title_threads = []
+        """Fetch playlist titles while preserving their original order."""
+        with ThreadPoolExecutor() as executor:
+            self.playlist_videos = list(executor.map(self._extract_video_data, videos))
 
-        for index, video in enumerate(videos):
-            thread = threading.Thread(
-                target=self.fetch_title_thread, args=(video, index, results))
-            thread.start()
-            title_threads.append(thread)
-
-        for thread in title_threads:
-            thread.join()
-
-        self.playlist_videos = results
+    @staticmethod
+    def _extract_video_data(video):
+        return safe_filename(video.title), video.video_id
 
     @staticmethod
     def show_playlist_info(title, total):
@@ -99,21 +86,28 @@ class PlaylistHandler:
 
     def check_for_downloaded_videos(self, title, total):
         new_path = self.create_playlist_folder(safe_filename(title))
+        existing_titles = {
+            self._clean_downloaded_title(file_name)
+            for file_name in os.listdir(new_path)
+        }
 
-        # check if there is any video already downloaded in the past
-        for file in os.listdir(new_path):
-            fileName = os.path.splitext(file)[0]
-            cleaned_file_name = re.compile(r'(_\d{3,4}p|_\d+k|_(hd|uhd|sd))$').sub('', fileName)
-
-            for video in self.playlist_videos:
-                video_name = video[0]
-                if video_name.startswith(cleaned_file_name):
-                    self.playlist_videos.remove(video)
-                    break
+        self.playlist_videos = [
+            video
+            for video in self.playlist_videos
+            if not any(video[0].startswith(existing) for existing in existing_titles)
+        ]
 
         if not self.playlist_videos:
-            console.print(f"All playlist are already downloaded in this directory, see '{title}' folder", style="info")
+            console.print(
+                f"All playlist videos are already downloaded in this directory, see '{title}' folder",
+                style="info",
+            )
             sys.exit()
 
         self.show_playlist_info(title, total)
         return new_path
+
+    @staticmethod
+    def _clean_downloaded_title(file_name):
+        base_name = os.path.splitext(file_name)[0]
+        return re.compile(r"(_\d{3,4}p|_\d+k|_(hd|uhd|sd))$").sub("", base_name)

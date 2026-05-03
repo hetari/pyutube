@@ -1,293 +1,204 @@
-"""
-This module contains the utils functions for the pyutube package.
-"""
+"""Utility helpers for the pyutube package."""
 
+import os
 import subprocess
 import sys
-import os
+from typing import Any, Optional
 
-import requests
 import inquirer
-from yaspin import yaspin
-from yaspin.spinners import Spinners
+import requests
+from pytubefix import __version__ as pytubefix_version
 from rich.console import Console
 from rich.theme import Theme
 from termcolor import colored
-from pytubefix import __version__ as pytubefix_version
-
+from yaspin import yaspin
+from yaspin.spinners import Spinners
 
 __version__ = "1.5.0"
 __app__ = "pyutube"
 ABORTED_PREFIX = "Aborted"
 CANCEL_PREFIX = "Cancel"
 
-
-# Set up the console
-custom_theme = Theme({
-    "info": "#64b0f2",
-    "warning": "color(3)",
-    "success": "green",
-})
+custom_theme = Theme(
+    {
+        "info": "#64b0f2",
+        "warning": "color(3)",
+        "success": "green",
+    }
+)
 console = Console(theme=custom_theme)
 error_console = Console(stderr=True, style="red")
 
 
 def clear() -> None:
-    """
-    Function to clear the console screen, it can be used for any operating system
-
-    Args:
-        This function does not take any parameters.
-
-    Returns:
-        It does not return anything (None).
-    """
-    # For Windows
-    if os.name == "nt":
-        os.system("cls")
-    else:
-        # For Unix/Linux/MacOS
-        os.system("clear")
+    """Clear the terminal screen on the current platform."""
+    os.system("cls" if os.name == "nt" else "clear")
 
 
 @yaspin(text="Checking internet connection", color="blue", spinner=Spinners.earth)
 def is_internet_available() -> bool:
-    """
-    Checks if internet connection is available by making a simple request
-    to http://www.google.com with a timeout of 5 seconds.
-
-    Returns:
-        bool: the request status (True if available, False if not).
-    """
+    """Return ``True`` when a basic outbound request succeeds."""
     try:
         requests.get("https://www.google.com", timeout=5)
         return True
-    except Exception:
+    except requests.RequestException:
         return False
 
 
-def file_type() -> str:
-    """
-    Prompts the user to choose a file type for download and returns
-    the chosen file type as a string.
-
-    Args:
-        None
-
-    Returns:
-        str: The chosen file type as a string.
-    """
-    # make the console font to red
-    questions = [
-        inquirer.List(
-            "file_type",
-            message="Choose the file type you want to download",
-            choices=['Audio', 'Video', CANCEL_PREFIX],
-        ),
-    ]
-
+def _prompt_choice(question: Any) -> Optional[Any]:
+    """Return the selected value for a single inquirer question."""
     try:
-        answer = inquirer.prompt(questions)["file_type"]
-
-    # TypeError: 'NoneType' object is not subscriptable
-
-    except TypeError:
-        return ABORTED_PREFIX
-
+        response = inquirer.prompt([question])
     except Exception as error:
         error_console.print(f"Error: {error}")
-        sys.exit()
+        sys.exit(1)
 
-    return answer
+    if not response:
+        return None
+
+    return response.get(question.name)
 
 
-def ask_resolution(resolutions: set, sizes) -> str:
-    """
-    Prompts the user to choose a resolution for download
-    and returns the chosen resolution as a string.
+def file_type() -> Optional[str]:
+    """Ask whether the user wants audio or video output."""
+    question = inquirer.List(
+        "file_type",
+        message="Choose the file type you want to download",
+        choices=["Audio", "Video", CANCEL_PREFIX],
+    )
+    choice = _prompt_choice(question)
+    return choice
 
-    Args:
-        resolutions (set): The set of available resolutions.
 
-    Returns:
-        str: The chosen resolution as a string.
-    """
-    # Create a dictionary to relate each size with its resolution
+def ask_resolution(resolutions, sizes) -> Optional[str]:
+    """Ask the user to choose a video resolution."""
     size_resolution_mapping = dict(zip(resolutions, sizes))
-
-    # Generate the choices for the user prompt
-    resolution_choices = [
-        f"{size} ~= {resolution}" for size, resolution in size_resolution_mapping.items()
+    choices = [
+        f"{size} ~= {resolution}"
+        for size, resolution in size_resolution_mapping.items()
     ] + [CANCEL_PREFIX]
 
-    questions = [
-        inquirer.List(
-            "resolution",
-            message="Choose the resolution you want to download",
-            choices=resolution_choices,
-        ),
-    ]
+    question = inquirer.List(
+        "resolution",
+        message="Choose the resolution you want to download",
+        choices=choices,
+    )
+    choice = _prompt_choice(question)
+    if choice is None:
+        return None
 
-    try:
-        answer = inquirer.prompt(questions)["resolution"]
-
-    except TypeError:
-        return ABORTED_PREFIX
-
-    except Exception as error:
-        error_console.print(f"Error: {error}")
-        sys.exit()
-
-     # Extract the resolution part from the user's choice
-    return answer.split(" ~= ")[0]
+    return choice.split(" ~= ")[0]
 
 
-def ask_rename_file(filename: str) -> str:
-    """
-    Function to ask the user whether to rename, overwrite, or cancel the file operation.
+def ask_rename_file(filename: str) -> Optional[str]:
+    """Ask the user how to handle a filename conflict."""
+    console.print(f"'{filename}' already exists. What do you want to do?", style="info")
 
-    Args:
-        filename (str): The name of the file.
-
-    Returns:
-        str: The user's choice to rename, overwrite, or cancel the file operation.
-    """
-    console.print(
-        f"'{filename}' is already exists, do you want to:", style="info")
-    questions = [
-        inquirer.List(
-            "rename",
-            message="Do you want to",
-            choices=['Rename it', 'Overwrite it', CANCEL_PREFIX.capitalize()],
-        ),
-    ]
-    return inquirer.prompt(questions)["rename"]
+    question = inquirer.List(
+        "rename",
+        message="Choose an action",
+        choices=["Rename it", "Overwrite it", CANCEL_PREFIX],
+    )
+    return _prompt_choice(question)
 
 
-def ask_playlist_video_names(videos):
+def ask_playlist_video_names(videos) -> Optional[list]:
+    """Ask which playlist videos should be downloaded."""
     note = colored("NOTE:", "cyan")
     select_one = colored("<space>", "red")
     select_all = colored("<ctrl+a>", "red")
     invert_selection = colored("<ctrl+i>", "red")
     restart_selection = colored("<ctrl+r>", "red")
 
-    print((
+    print(
         f"{note} Press {select_one} to select the videos, {select_all} to select all, "
         f"{invert_selection} to invert selection, and {restart_selection} to restart selection"
-    ))
+    )
 
-    questions = [
-        inquirer.Checkbox(
-            "names",
-            message="Choose the videos you want to download",
-            choices=videos,
-        ),
-    ]
-
-    try:
-        answer = inquirer.prompt(questions)["names"]
-
-    except TypeError:
-        return ABORTED_PREFIX
-
-    except Exception as error:
-        error_console.print(f"Error: {error}")
-        sys.exit()
-
-    return answer
+    question = inquirer.Checkbox(
+        "names",
+        message="Choose the videos you want to download",
+        choices=videos,
+    )
+    return _prompt_choice(question)
 
 
-def ask_for_make_playlist_in_order():
-    # make_in_order = colored( "", "cyan")
-
-    questions = [
-        inquirer.Confirm(
-            "ask_for_make_playlist_in_order",
-            message="Do you want to add the number order of the videos (ex: 1, 2, ...etc)? ",
-            default=False
-        ),
-    ]
-
-    try:
-        answer = inquirer.prompt(questions)["ask_for_make_playlist_in_order"]
-
-    except TypeError:
-        return ABORTED_PREFIX
-
-    except Exception as error:
-        error_console.print(f"Error: {error}")
-        sys.exit()
-
-    return answer
+def ask_for_make_playlist_in_order() -> Optional[bool]:
+    """Ask whether playlist items should be prefixed with their order number."""
+    question = inquirer.Confirm(
+        "ask_for_make_playlist_in_order",
+        message="Do you want to add the number order of the videos (ex: 1, 2, ...etc)?",
+        default=False,
+    )
+    return _prompt_choice(question)
 
 
 def check_for_updates() -> None:
-    """
-    A function to check for updates of a given package or packages.
-
-    Returns:
-        None
-    """
+    """Check PyPI for newer versions of the main dependencies."""
     libraries = {
-        'pyutube': {
-            'version': __version__,
-            'repository': 'https://github.com/Hetari/pyutube'
+        "pyutube": {
+            "version": __version__,
         },
-        'pytubefix': {
-            'version': pytubefix_version,
-            'repository': 'https://github.com/Hetari/pytubefix'
-        }
+        "pytubefix": {
+            "version": pytubefix_version,
+        },
     }
 
     try:
-        for library, version in libraries.items():
-            r = requests.get(
-                f'https://pypi.org/pypi/{library}/json', headers={'Accept': 'application/json'})
-            if r.status_code == 200:
-                latest_version = r.json()['info']['version']
-
-                if latest_version != version['version']:
-                    console.print(
-                        f"👉 A new version of [blue]{library}[/blue] is available: {latest_version} " +
-                        f"Updating it now... ",
-                        style="warning"
-                    )
-                    # auto-update the package
-                    try:
-                        subprocess.check_call(
-                            [sys.executable, '-m', 'pip', 'install', '--upgrade', library, '--break-system-packages'],
-                            stdout=subprocess.PIPE,
-                            stderr=subprocess.PIPE
-                        )
-                        console.print(
-                            f"✅ Successfully updated [blue]{library}[/blue] to version {latest_version}.",
-                            style="success"
-                        )
-                    except subprocess.CalledProcessError as e:
-                        error_console.print(
-                            f"❗ Failed to update [blue]{library}[/blue]: {e.stderr.decode()}"
-                        )
-                        console.print(
-                            f"❗ If you want to use the latest version of [blue]{library}[/blue], " +
-                            "Update it by running [bold red link=https://github.com/Hetari/pyutube] " +
-                            f"pip install --upgrade {library}[/bold red link]"
-                        )
-
-            else:
+        for library, metadata in libraries.items():
+            response = requests.get(
+                f"https://pypi.org/pypi/{library}/json",
+                headers={"Accept": "application/json"},
+                timeout=10,
+            )
+            if response.status_code != 200:
                 error_console.print(
-                    f"❗ Error checking for updates: {r.status_code}")
+                    f"❗ Error checking for updates: {response.status_code}"
+                )
+                continue
+
+            latest_version = response.json()["info"]["version"]
+            if latest_version == metadata["version"]:
+                continue
+
+            console.print(
+                f"👉 A new version of [blue]{library}[/blue] is available: {latest_version}. "
+                f"Updating it now...",
+                style="warning",
+            )
+
+            try:
+                subprocess.check_call(
+                    [
+                        sys.executable,
+                        "-m",
+                        "pip",
+                        "install",
+                        "--upgrade",
+                        library,
+                        "--break-system-packages",
+                    ],
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                )
+                console.print(
+                    f"✅ Successfully updated [blue]{library}[/blue] to version {latest_version}.",
+                    style="success",
+                )
+            except subprocess.CalledProcessError as error:
+                error_console.print(
+                    f"❗ Failed to update [blue]{library}[/blue]: {error.stderr.decode()}"
+                )
+                console.print(
+                    f"❗ Update {library} manually with: pip install --upgrade {library}",
+                    style="warning",
+                )
     except Exception as error:
         error_console.print(f"❗ Error checking for updates: {error}")
 
 
-# main utils
 def check_internet_connection() -> bool:
-    """
-    Checks if an internet connection is available.
-
-    Returns:
-        bool: True if internet connection is available, False otherwise.
-    """
+    """Return ``True`` only when an internet connection is available."""
     if not is_internet_available():
         error_console.print("❗ No internet connection")
         return False
@@ -297,21 +208,10 @@ def check_internet_connection() -> bool:
     return True
 
 
-def asking_video_or_audio() -> bool:
-    """
-    Handles video link scenario.
+def asking_video_or_audio() -> Optional[bool]:
+    """Return ``True`` for audio downloads and ``False`` for video downloads."""
+    choice = file_type()
+    if choice is None or choice.startswith(CANCEL_PREFIX):
+        return None
 
-    Args:
-        None
-
-    Returns:
-        bool: True if the video link is valid, False otherwise.
-    """
-    file_type_choice = file_type().lower()
-    is_audio = file_type_choice.startswith("audio")
-
-    if file_type_choice.startswith(CANCEL_PREFIX.lower()):
-        error_console.print("❗ Cancel the download...")
-        sys.exit()
-
-    return is_audio
+    return choice.lower().startswith("audio")
