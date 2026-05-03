@@ -64,6 +64,7 @@ setup(
         "termcolor",
         "moviepy",
         "setuptools",
+        "imageio-ffmpeg",
     ],
 
     extras_require={

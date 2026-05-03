@@ -8,3 +8,4 @@ pytubefix==8.8.1
 inquirer==3.4.0
 termcolor==2.3.0
 moviepy==2.1.1
+imageio-ffmpeg==0.6.0
