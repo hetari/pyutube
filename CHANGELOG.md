@@ -1,3 +1,32 @@
+#### 1.5.2 (2026-05-03)
+
+##### Chores
+
+*  bump version to 1.5.2 and add documentation for subtitle handling (2121e823)
+*  bump version to 1.5.1 and refactor package exports and setup configuration (192dbe1f)
+*  standardize codebase, improve documentation, and refactor type annotations (bbf2d09b)
+*  implement CI/CD pipeline, type checking, linting, and comprehensive test suite (69f26ea3)
+
+##### New Features
+
+*  add AudioConversionService to convert audio streams to MP3 and update download services accordingly (512de842)
+
+##### Bug Fixes
+
+*  prevent unnecessary version checks and downgrades, and rename stream loading spinner text (1346825e)
+
+##### Refactors
+
+*  update audio handling to use native containers, switch to subprocess for ffmpeg, adjust YouTube client configuration (31c37c7e)
+*  use lazy imports for requests to handle missing dependency errors gracefully (78a8c2be)
+*  modularize download services and implement dedicated file conflict resolution and video merging services (a7aeaaa2)
+*  modularize URL parsing logic and introduce dedicated prompt and network services (23d9d30e)
+*  improve playlist processing, add project documentation, and optimize download service logic (eb91d2a6)
+
+##### Tests
+
+*  implement comprehensive unit test suite for core services and handlers (2718fa61)
+
 ### 1.5.0 (2025-06-19)
 
 ##### Chores
