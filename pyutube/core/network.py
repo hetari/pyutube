@@ -1,10 +1,13 @@
 """Network checks for pyutube."""
 
-import requests  # type: ignore[import-untyped]
+from importlib import import_module
+
 from yaspin import yaspin
 from yaspin.spinners import Spinners
 
 from pyutube.ui import console, error_console
+
+requests = import_module("requests")
 
 
 class InternetChecker:

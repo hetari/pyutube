@@ -4,13 +4,15 @@ import re
 import subprocess
 import sys
 from dataclasses import dataclass
+from importlib import import_module
 from typing import Dict, Optional
 
-import requests  # type: ignore[import-untyped]
 from pytubefix import __version__ as pytubefix_version
 
 from pyutube.ui import console, error_console
 from pyutube.version import __version__
+
+requests = import_module("requests")
 
 
 @dataclass(frozen=True)
