@@ -1,6 +1,6 @@
 """Network checks for pyutube."""
 
-import requests
+import requests  # type: ignore[import-untyped]
 from yaspin import yaspin
 from yaspin.spinners import Spinners
 

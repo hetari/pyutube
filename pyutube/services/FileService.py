@@ -1,15 +1,15 @@
 import os
+from typing import Any
 
-from pytubefix import YouTube
 from pytubefix.helpers import safe_filename
 
 
 class FileService:
-    def save_file(self, media: YouTube, filename: str, path: str) -> None:
+    def save_file(self, media: Any, filename: str, path: str) -> None:
         """Download the selected stream to the target path."""
         media.download(output_path=path, filename=filename)
 
-    def generate_filename(self, media, is_audio: bool = False, filename: str = ""):
+    def generate_filename(self, media: Any, is_audio: bool = False, filename: str = ""):
         """Build a filename from the stream metadata."""
         file_type = "audio" if is_audio else media.resolution
         extension = ".m4a" if is_audio else f".{media.mime_type.split('/')[1]}"

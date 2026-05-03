@@ -1,8 +1,8 @@
 """Select and describe the video streams available for download."""
 
 import sys
+from typing import Any
 
-from pytubefix import YouTube
 from termcolor import colored
 from yaspin import yaspin
 from yaspin.spinners import Spinners
@@ -19,7 +19,7 @@ class StreamSelectionService:
         self.quality = quality
 
     @yaspin(text=colored("getting video streams", "green"), spinner=Spinners.point)
-    def get_available_resolutions(self, video: YouTube) -> AvailableVideoStreams:
+    def get_available_resolutions(self, video: Any) -> AvailableVideoStreams:
         """Return resolution labels, sizes, and the related streams."""
         streams = video.streams
         available_streams = streams.filter(
@@ -58,7 +58,7 @@ class StreamSelectionService:
         color="green",
         spinner=Spinners.dots13,
     )
-    def get_video_streams(self, quality: str, streams):
+    def get_video_streams(self, quality: str, streams: Any):
         """Pick the best matching stream for the requested quality."""
         stream = streams.filter(res=quality).first()
 
@@ -87,7 +87,7 @@ class StreamSelectionService:
 
     def get_selected_stream(
         self,
-        video: YouTube,
+        video: Any,
         is_audio: bool = False,
     ) -> DownloadPreparation:
         """Return the streams needed for the selected download mode."""

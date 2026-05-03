@@ -1,9 +1,6 @@
-import os
 import pytest
-from unittest.mock import patch
 
-from pyutube.utils import is_youtube_link
-from pyutube.utils import is_youtube_video
+from pyutube.utils import is_youtube_link, is_youtube_video
 
 
 @pytest.mark.parametrize("link, expected_result, test_id", [

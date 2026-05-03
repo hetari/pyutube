@@ -10,15 +10,21 @@ from pyutube.core.network import InternetChecker
 from pyutube.core.prompts import PromptService
 from pyutube.core.update_checker import UpdateChecker
 from pyutube.core.url_parser import (
-    is_youtube_link,
-    is_youtube_video,
+    is_youtube_link as _is_youtube_link,
 )
-from pyutube.ui import console, error_console
-from pyutube.version import __version__
+from pyutube.core.url_parser import (
+    is_youtube_video as _is_youtube_video,
+)
+from pyutube.ui import console as _console
+from pyutube.ui import error_console as _error_console
+from pyutube.version import __version__ as _version
 
 __app__ = "pyutube"
 ABORTED_PREFIX = "Aborted"
 CANCEL_PREFIX = "Cancel"
+console = _console
+error_console = _error_console
+__version__ = _version
 
 _prompt_service = PromptService()
 _update_checker = UpdateChecker()
@@ -60,3 +66,11 @@ def check_for_updates() -> None:
 
 def check_internet_connection() -> bool:
     return _internet_checker.check()
+
+
+def is_youtube_link(link: str):
+    return _is_youtube_link(link)
+
+
+def is_youtube_video(link: str):
+    return _is_youtube_video(link)

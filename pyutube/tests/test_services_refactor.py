@@ -5,11 +5,11 @@ from unittest.mock import Mock
 import pytest
 
 from pyutube.services.FileConflictResolver import FileConflictResolver
+from pyutube.services.models import DownloadPreparation, PlaylistDownloadPlan
 from pyutube.services.PlaylistDownloadService import PlaylistDownloadService
 from pyutube.services.SingleDownloadService import SingleDownloadService
 from pyutube.services.StreamSelectionService import StreamSelectionService
 from pyutube.services.VideoMergeService import VideoMergeService
-from pyutube.services.models import DownloadPreparation, PlaylistDownloadPlan
 
 
 class FakeStream:

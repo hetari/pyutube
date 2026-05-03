@@ -61,6 +61,16 @@ setup(
         "setuptools",
     ],
 
+    extras_require={
+        "dev": [
+        "coverage>=7.0,<8.0",
+        "mypy>=1.8,<2.0",
+        "pytest>=8.0,<9.0",
+        "types-requests>=2.32.0,<3.0",
+        "ruff>=0.9,<1.0",
+    ],
+    },
+
     entry_points={
         "console_scripts": [
             "pyutube=pyutube:cli.app",

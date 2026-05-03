@@ -14,7 +14,7 @@ class VideoMergeService:
     def __init__(self, path: str) -> None:
         self.path = path
 
-    def merging(self, video_name: str, audio_name: str):
+    def merging(self, video_name: str, audio_name: str) -> None:
         """Merge the downloaded video and audio streams into a single file."""
         output_directory = os.path.join(self.path, "output")
         os.makedirs(output_directory, exist_ok=True)

@@ -1,9 +1,8 @@
 """Resolve filename conflicts before a download starts."""
 
 import sys
-from typing import Optional
+from typing import Any, Optional
 
-from pytubefix import YouTube
 from termcolor import colored
 
 from pyutube.services.FileService import FileService
@@ -14,12 +13,12 @@ from pyutube.utils import ask_rename_file
 class FileConflictResolver:
     """Handle overwrite, rename, and cancel decisions for existing files."""
 
-    def __init__(self, file_service: Optional[FileService] = None) -> None:
+    def __init__(self, file_service: Optional[Any] = None) -> None:
         self.file_service = file_service or FileService()
 
     def resolve(
         self,
-        video: YouTube,
+        video: Any,
         filename: str,
         path: str,
         is_audio: bool = False,

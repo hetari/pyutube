@@ -107,7 +107,7 @@ def pyutube(
     if not is_valid_link:
         sys.exit()
 
-    download_service = DownloadService(url, path, None)
+    download_service = DownloadService(url, path, "")
     if audio:
         download_service.is_audio = True
         preparation = download_service.download_preparing()

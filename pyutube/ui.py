@@ -3,7 +3,6 @@
 from rich.console import Console
 from rich.theme import Theme
 
-
 custom_theme = Theme(
     {
         "info": "#64b0f2",

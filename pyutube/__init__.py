@@ -10,7 +10,7 @@ Example:
     >>> app.run()
 
 """
-from .cli import app
+from .cli import app as app
 
 
 # List the symbols you want to export from this module

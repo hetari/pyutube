@@ -1,6 +1,6 @@
 """Download every selected item from a playlist."""
 
-from typing import Callable, Optional
+from typing import Any, Callable, Optional
 
 from pyutube.handlers.PlaylistHandler import PlaylistHandler
 from pyutube.services.SingleDownloadService import SingleDownloadService
@@ -12,7 +12,7 @@ class PlaylistDownloadService:
     def __init__(
         self,
         single_download_factory: Optional[
-            Callable[[str, str, str, bool, bool], SingleDownloadService]
+            Callable[[str, str, str, bool, bool], Any]
         ] = None,
     ) -> None:
         self.single_download_factory = single_download_factory or self._default_factory
@@ -54,11 +54,11 @@ class PlaylistDownloadService:
                 int(selected_titles[index].split("__")[0]) if make_in_order else 0
             )
             downloader = self.single_download_factory(
-                url=f"https://www.youtube.com/watch?v={video_id}",
-                path=new_path,
-                quality=quality,
-                is_audio=is_audio,
-                make_playlist_in_order=make_in_order,
+                f"https://www.youtube.com/watch?v={video_id}",
+                new_path,
+                quality,
+                is_audio,
+                make_in_order,
             )
 
             if index == 0:

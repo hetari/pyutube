@@ -2,15 +2,14 @@
 
 import os
 import sys
-from typing import Optional
+from typing import Any, Optional
 
-from pytubefix import YouTube
 from pytubefix.helpers import safe_filename
 
 from pyutube.services.FileConflictResolver import FileConflictResolver
 from pyutube.services.FileService import FileService
-from pyutube.services.VideoService import VideoService
 from pyutube.services.models import DownloadPreparation
+from pyutube.services.VideoService import VideoService
 from pyutube.ui import console, error_console
 
 
@@ -24,9 +23,9 @@ class SingleDownloadService:
         quality: str,
         is_audio: bool = False,
         make_playlist_in_order: bool = False,
-        video_service: Optional[VideoService] = None,
-        file_service: Optional[FileService] = None,
-        conflict_resolver: Optional[FileConflictResolver] = None,
+        video_service: Optional[Any] = None,
+        file_service: Optional[Any] = None,
+        conflict_resolver: Optional[Any] = None,
     ) -> None:
         self.url = url
         self.path = path
@@ -74,8 +73,8 @@ class SingleDownloadService:
 
     def download_audio(
         self,
-        video: YouTube,
-        video_audio: YouTube,
+        video: Any,
+        video_audio: Any,
         title_number: int = 0,
     ) -> str:
         """Download the audio stream for a video."""
@@ -113,9 +112,9 @@ class SingleDownloadService:
 
     def download_video(
         self,
-        video: YouTube,
-        video_stream: YouTube,
-        video_audio: YouTube,
+        video: Any,
+        video_stream: Any,
+        video_audio: Any,
         title_number: int = 0,
     ):
         """Download and merge the video and audio streams."""

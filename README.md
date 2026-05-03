@@ -18,7 +18,8 @@
 <br />
 <br />
 
-> [!NOTE] > `Pyutube` is built on top of `pytubefix`, make sure to have the latest version of `pytubefix` by running:
+> [!NOTE]
+> Pyutube is built on top of `pytubefix`. If downloads stop working, update it first:
 >
 > ```bash
 > pip install --upgrade pytubefix
@@ -29,53 +30,69 @@
 </a>
 
 > [!NOTE]
-> Have **a new feature**? Please don't hesitate to [tell me](https://github.com/Hetari/pyutube/issues/new)!
+> Have a feature request or bug report? [tell me](https://github.com/Hetari/pyutube/issues/new)
 
-## 🤔 why `pyutube`?
+## Why Pyutube?
 
-This command-line wizard lets you download YouTube videos or playlists straight from your `Terminal`, powered by [Pytubefix](https://pytubefix.readthedocs.io/). It works like a charm on Windows, Mac, and Linux, so you can rock it on any platform.
-
-While other tools make you wade through a swamp of settings and configs, `Pyutube` keeps it simple. Just drop in your URL, and voilà! It’ll take you on a smooth ride to your favorite videos, no complex options needed—just fun downloading! 🔥
+Pyutube is a small CLI wrapper around `pytubefix`. It supports videos, shorts, audio-only downloads, and playlists with a simple prompt-driven flow.
 
 ## 🛠️ Installation
 
-Getting `Pyutube` up and running is a breeze! First, ensure you have [Python](https://www.python.org) installed. Just pop open your terminal and type:
+Make sure [Python](https://www.python.org) is installed:
 
 ```bash
 python --version
 ```
 
-If you see something like `Python 3.x`, you’re all set! If not, head over to [Python's downloads page](https://www.python.org/downloads/) to grab it.
+If you are developing locally, clone the repository and install the dependencies:
 
-Once you’re good to go, install `Pyutube` with a single command:
+```bash
+pip install -r requirements.txt -r requirements-dev.txt
+```
+
+To install the published package:
 
 ```bash
 pip install pyutube --break-system-packages
 ```
 
-And just like that, you’re ready to download some awesome videos! 🎉
+Then run `pyutube --help` to confirm the CLI is available.
 
 ## 📈 Upgrade
 
-Stay in the loop with the latest features on [GitHub](https://github.com/Hetari/pyutube)! To upgrade your `Pyutube` tool, simply run:
+To upgrade the installed package:
 
 ```bash
 pip install --upgrade pyutube --break-system-packages
 ```
 
-Then you’re all set to keep downloading from your `Terminal`! 🥳
+## 🚀 Run It
 
-## 🦸 Quick Start
-
-Getting started with `Pyutube` is a piece of cake! Just use the following command style:
+Use either of these commands to view the CLI help:
 
 ```bash
-pyutube "YOUTUBE_LINK" [PATH]
+pyutube --help
+python -m pyutube --help
+```
+
+Download a video, short, or playlist with:
+
+```bash
+pyutube download "YOUTUBE_LINK"
+pyutube download "YOUTUBE_LINK" "/path/to/save"
+```
+
+Common examples:
+
+```bash
+pyutube download "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+pyutube download "https://www.youtube.com/watch?v=dQw4w9WgXcQ" -a
+pyutube download "https://www.youtube.com/watch?v=dQw4w9WgXcQ" -f
+pyutube download "https://www.youtube.com/playlist?list=PLAYLIST_ID"
 ```
 
 > [!NOTE]
-> The `[URL]` is <span style="color:red">[Required]</span> and it should be between `""`<br/>
-> The `[PATH]` is optional—if you don’t specify one, it’ll save to your current terminal directory. Easy-peasy!
+> The URL is required. The path is optional and defaults to the current working directory.
 
 ## 👨‍💻 Usage
 
@@ -83,52 +100,66 @@ pyutube "YOUTUBE_LINK" [PATH]
 
 | Arguments | Description                                                                                                          |
 | --------- | -------------------------------------------------------------------------------------------------------------------- |
-| `URL`     | The `URL` of the YouTube video. This argument is <span style="color:red">[Required]</span>.                          |
+| `URL`     | The YouTube URL or video ID. This argument is required.                                                              |
 | `PATH`    | The `path` to save the video. Defaults to the current working directory. <span style="color:green">[Optional]</span> |
 
 ### Options
 
 | Option                                              | Description                            |
 | --------------------------------------------------- | -------------------------------------- |
-| `-v` <span style="color:cyan">or</span> `--version` | Displays the current version number.   |
+| `-v` <span style="color:cyan">or</span> `--version` | Display the current version number.    |
 | `-a` <span style="color:cyan">or</span> `--audio`   | Download audio only, skipping prompts. |
 | `-f` <span style="color:cyan">or</span> `--footage` | Download video only, skipping prompts. |
 
+## 🧪 Test And Quality
+
+Run these commands to check code health locally:
+
+```bash
+python -m compileall pyutube
+pytest pyutube/tests -q
+ruff check pyutube
+mypy pyutube
+coverage run -m pytest pyutube/tests -q
+coverage report
+```
+
+The repo also includes a short checklist in [QUALITY.md](QUALITY.md).
+
 ## 🕵️‍♂️ Examples
 
-For lots of examples, check them out [here](https://github.com/Hetari/pyutube/blob/main/EXAMPLES.md)! Take a deep dive and discover all the ways to use Pyutube. 🚀
+More examples are in [EXAMPLES.md](EXAMPLES.md).
 
 ## 🥰 Contributing
 
-Pull requests are welcome. For major changes, please open an issue first to discuss what you want to change.
-please follow the [contributing guidelines](https://github.com/Hetari/pyutube/blob/main/CONTRIBUTING.md)
+Pull requests are welcome. For larger changes, open an issue first and follow the [contributing guidelines](CONTRIBUTING.md).
 
 ## 📎 License
 
-This project is licensed under the [MIT License](https://github.com/Hetari/pyutube/blob/main/LICENSE.md).
+This project is licensed under the [MIT License](LICENSE).
 
 ## 📸 Screenshots
 
 <!-- for pypi only -->
 <div style="text-align: center;">
-   <p>Download video with specify the save location</p>
+   <p>Download a video to a specific location</p>
    <a href="https://ibb.co/0JkdkQy">
       <img src="https://i.ibb.co/7yH6Hbt/image1.png" alt="Download video with specify the save location">
    </a>
-   <p>Chose what type you want to download</p>
+   <p>Choose what type to download</p>
    <a href="https://ibb.co/Kb6qjmg">
       <img src="https://i.ibb.co/sbjwvt4/image2.png" alt="Chose what type you want to download">
    </a>
-   <p>Chose what what resolution you want to download(if the type is video)</p>
+   <p>Choose a resolution when downloading video</p>
    <a href="https://ibb.co/7ymCS79">
       <img src="https://i.ibb.co/h8z9gpq/image4.png" alt="Chose what resolution you want to download">
    </a>
-   <p>If you download a playlist, you can choose what video you want to download, or even all of them</p>
+   <p>Select playlist items to download</p>
    <a href="https://ibb.co/0qwkQNm">
       <img src="https://i.ibb.co/1ZS3bV7/Screenshot-from-2024-04-11-16-42-29.png" alt="If you download a playlist, you can choose what video you want to download, or even all of them"/>
    </a>
 <br /><br />
- <p>Do not know how to use it? just type <code>pyutube --help</code></p>
+ <p>Need help? Run <code>pyutube --help</code></p>
   <a href="https://ibb.co/LhT6r3r">
       <img src="https://i.ibb.co/WprF0L0/image5.png" alt="image5">
    </a>
@@ -139,7 +170,7 @@ This project is licensed under the [MIT License](https://github.com/Hetari/pyutu
 - [x] **Notification System**
 - [x] **Auto Update package if new version available**
 - [x] **Support Optional Numbering for Downloaded Playlist Videos**
-- [ ] **Improve code health**
+- [x] **Improve code health**
 - [ ] **Support downloading sounds (mp3 format not a audio/mp4)**
 - [ ] **Support Subtitles Download**
 - [ ] **Support setting for downloading folder**

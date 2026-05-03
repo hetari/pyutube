@@ -3,9 +3,9 @@
 import subprocess
 import sys
 from dataclasses import dataclass
-from typing import Dict
+from typing import Dict, Optional
 
-import requests
+import requests  # type: ignore[import-untyped]
 from pytubefix import __version__ as pytubefix_version
 
 from pyutube.ui import console, error_console
@@ -29,7 +29,7 @@ class UpdateChecker:
             "pytubefix": PackageVersion("pytubefix", pytubefix_version),
         }
 
-    def _fetch_latest_version(self, package_name: str) -> str | None:
+    def _fetch_latest_version(self, package_name: str) -> Optional[str]:
         response = requests.get(
             f"https://pypi.org/pypi/{package_name}/json",
             headers={"Accept": "application/json"},

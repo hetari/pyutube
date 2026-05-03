@@ -20,7 +20,7 @@ class PlaylistHandler:
     def __init__(self, url: str, path: str):
         self.url = url
         self.path = path
-        self.playlist_videos = []
+        self.playlist_videos: list = []
 
     def process_playlist(self) -> Optional[PlaylistDownloadPlan]:
         """Collect playlist metadata and ask the user what to download."""

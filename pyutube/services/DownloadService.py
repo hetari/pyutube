@@ -1,8 +1,8 @@
 """High-level download coordinator for single videos and playlists."""
 
+from pyutube.services.models import DownloadPreparation
 from pyutube.services.PlaylistDownloadService import PlaylistDownloadService
 from pyutube.services.SingleDownloadService import SingleDownloadService
-from pyutube.services.models import DownloadPreparation
 from pyutube.utils import asking_video_or_audio
 
 

@@ -1,6 +1,7 @@
 """Search for a YouTube video object."""
 
 import sys
+from typing import Any
 
 from pytubefix import YouTube
 from pytubefix.cli import on_progress
@@ -17,7 +18,7 @@ class VideoSearchService:
     def __init__(self, url: str) -> None:
         self.url = url
 
-    def search_process(self) -> YouTube:
+    def search_process(self) -> Any:
         """Create a ``YouTube`` object for the current URL."""
         try:
             video = self._video_search()
@@ -36,7 +37,7 @@ class VideoSearchService:
         color="green",
         spinner=Spinners.point,
     )
-    def _video_search(self) -> YouTube:
+    def _video_search(self) -> Any:
         return YouTube(
             self.url,
             use_oauth=True,
