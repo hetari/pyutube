@@ -1,13 +1,18 @@
-"""
-This module contains the setup configuration for the pyutube package.
-"""
+"""Setup configuration for the pyutube package."""
 
+from pathlib import Path
 
 from setuptools import find_packages, setup
-from pyutube.utils import __version__
 
 
-# Read the README file to use as the long description
+def read_version() -> str:
+    """Read the package version without importing runtime dependencies."""
+    namespace: dict[str, str] = {}
+    version_file = Path(__file__).parent / "pyutube" / "version.py"
+    exec(version_file.read_text(encoding="utf-8"), namespace)
+    return namespace["__version__"]
+
+
 with open("README.md", "r", encoding="utf-8") as f:
     description = f.read()
 
@@ -15,7 +20,7 @@ with open("README.md", "r", encoding="utf-8") as f:
 setup(
     name="pyutube",
 
-    version=__version__,
+    version=read_version(),
 
     author="Ebraheem Alhetari",
 
@@ -73,7 +78,7 @@ setup(
 
     entry_points={
         "console_scripts": [
-            "pyutube=pyutube:cli.app",
+            "pyutube=pyutube.cli:app",
         ],
     },
 
