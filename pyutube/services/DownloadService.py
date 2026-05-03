@@ -1,16 +1,14 @@
-import os
-import sys
+"""High-level download coordinator for single videos and playlists."""
 
-from pytubefix import YouTube
-from pytubefix.helpers import safe_filename
-
-from pyutube.handlers.PlaylistHandler import PlaylistHandler
-from pyutube.services.FileService import FileService
-from pyutube.services.VideoService import VideoService
-from pyutube.utils import asking_video_or_audio, console, error_console
+from pyutube.services.PlaylistDownloadService import PlaylistDownloadService
+from pyutube.services.SingleDownloadService import SingleDownloadService
+from pyutube.services.models import DownloadPreparation
+from pyutube.utils import asking_video_or_audio
 
 
 class DownloadService:
+    """Coordinate the download flow while delegating the heavy lifting."""
+
     def __init__(
         self,
         url: str,
@@ -25,104 +23,82 @@ class DownloadService:
         self.is_audio = is_audio
         self.make_playlist_in_order = make_playlist_in_order
 
-        self.video_service = VideoService(self.url, self.quality, self.path)
-        self.file_service = FileService()
+        self.single_download_service = SingleDownloadService(
+            url=self.url,
+            path=self.path,
+            quality=self.quality,
+            is_audio=self.is_audio,
+            make_playlist_in_order=self.make_playlist_in_order,
+        )
+        self.playlist_download_service = PlaylistDownloadService(
+            self._build_single_download_service
+        )
+
+        self._sync_services()
+
+    def _sync_services(self) -> None:
+        """Keep the coordinator and the single-download worker aligned."""
+        self.single_download_service.url = self.url
+        self.single_download_service.path = self.path
+        self.single_download_service.quality = self.quality
+        self.single_download_service.is_audio = self.is_audio
+        self.single_download_service.make_playlist_in_order = (
+            self.make_playlist_in_order
+        )
+        self.single_download_service.refresh_video_service()
+        self.video_service = self.single_download_service.video_service
+        self.file_service = self.single_download_service.file_service
+
+    def _build_single_download_service(
+        self,
+        url: str,
+        path: str,
+        quality: str,
+        is_audio: bool,
+        make_playlist_in_order: bool,
+    ) -> SingleDownloadService:
+        """Create a worker that reuses shared file-conflict and file helpers."""
+        return SingleDownloadService(
+            url=url,
+            path=path,
+            quality=quality,
+            is_audio=is_audio,
+            make_playlist_in_order=make_playlist_in_order,
+            file_service=self.file_service,
+            conflict_resolver=self.single_download_service.conflict_resolver,
+        )
 
     def download(self, title_number: int = 0):
-        video, streams, video_audio, self.quality = self.download_preparing()
-
-        if self.is_audio:
-            self.download_audio(video, video_audio, title_number)
-            return True
-
-        video_file = self.video_service.get_video_streams(self.quality, streams)
-        if not video_file:
-            error_console.print("Something went wrong while downloading the video.")
-            sys.exit()
-
-        return self.download_video(video, video_file, video_audio, title_number)
+        self._sync_services()
+        return self.single_download_service.download(title_number)
 
     def download_audio(
         self,
-        video: YouTube,
-        video_audio: YouTube,
+        video,
+        video_audio,
         title_number: int = 0,
-    ) -> str:
-        audio_filename = self.file_service.generate_filename(
-            video_audio,
-            is_audio=True,
-        )
-
-        if self.make_playlist_in_order:
-            base_name, extension = os.path.splitext(audio_filename)
-            audio_filename = f"{title_number}__{base_name}{extension}"
-
-        audio_filename = self.file_service.handle_existing_file(
+    ):
+        self._sync_services()
+        return self.single_download_service.download_audio(
             video,
-            audio_filename,
-            self.path,
-            self.is_audio,
+            video_audio,
+            title_number,
         )
-
-        try:
-            if self.is_audio:
-                console.print("⏳ Downloading the audio...", style="info")
-
-            self.file_service.save_file(video_audio, audio_filename, self.path)
-        except Exception as error:
-            error_console.print(
-                f"❗ Error (please report this in github issue: https://github.com/Hetari/pyutube/issues):\n {error}"
-            )
-            sys.exit()
-
-        if self.is_audio:
-            console.print("\n\n✅ Download completed", style="success")
-
-        return audio_filename
 
     def download_video(
         self,
-        video: YouTube,
-        video_stream: YouTube,
-        video_audio: YouTube,
+        video,
+        video_stream,
+        video_audio,
         title_number: int = 0,
     ):
-        video_filename = self.file_service.generate_filename(video_stream)
-
-        if self.make_playlist_in_order:
-            video_base_name, video_extension = os.path.splitext(video_filename)
-            video_filename = f"{title_number}__{video_base_name}{video_extension}"
-
-        video_filename = self.file_service.handle_existing_file(
+        self._sync_services()
+        return self.single_download_service.download_video(
             video,
-            video_filename,
-            self.path,
-            self.is_audio,
+            video_stream,
+            video_audio,
+            title_number,
         )
-
-        try:
-            console.print("⏳ Downloading the video...", style="info")
-            self.file_service.save_file(video_stream, video_filename, self.path)
-            audio_filename = self.download_audio(
-                video,
-                video_audio,
-                title_number,
-            )
-
-            video_base_name, video_extension = os.path.splitext(video_filename)
-            audio_base_name, audio_extension = os.path.splitext(audio_filename)
-            video_safe_filename = f"{safe_filename(video_base_name)}{video_extension}"
-            audio_safe_filename = f"{safe_filename(audio_base_name)}{audio_extension}"
-
-            self.video_service.merging(video_safe_filename, audio_safe_filename)
-        except Exception as error:
-            error_console.print(
-                f"❗ Error (please report this in github issue: https://github.com/Hetari/pyutube/issues):\n {error}"
-            )
-            sys.exit()
-
-        console.print("\n\n✅ Download completed", style="success")
-        return self.quality
 
     def asking_video_or_audio(self):
         choice = asking_video_or_audio()
@@ -133,40 +109,17 @@ class DownloadService:
         self.download()
 
     def get_playlist_links(self):
-        handler = PlaylistHandler(self.url, self.path)
-        result = handler.process_playlist()
-        if result is None:
-            return
-
-        new_path, is_audio, videos_selected, make_in_order, playlist_videos = result
-        self.make_playlist_in_order = make_in_order
-
-        selected_titles = [
-            title for title, _video_id in playlist_videos if _video_id in videos_selected
-        ]
-
-        for index, video_id in enumerate(videos_selected):
-            self.url = f"https://www.youtube.com/watch?v={video_id}"
-            self.path = new_path
-            self.is_audio = is_audio
-
-            title_number = int(selected_titles[index].split("__")[0]) if make_in_order else 0
-
-            if index == 0:
-                self.video_service = VideoService(self.url, self.quality, self.path)
-                quality = self.download(title_number)
-                continue
-
-            self.quality = quality
-            self.video_service = VideoService(self.url, self.quality, self.path)
-            self.download(title_number)
-
-    def download_preparing(self):
-        video = self.video_service.search_process()
-        console.print(f"Title: {video.title}\n", style="info")
-        streams, video_audio, self.quality = self.video_service.get_selected_stream(
-            video,
-            self.is_audio,
+        self._sync_services()
+        self.playlist_download_service.download_playlist(
+            self.url,
+            self.path,
+            self.quality,
         )
 
-        return video, streams, video_audio, self.quality
+    def download_preparing(self) -> DownloadPreparation:
+        self._sync_services()
+        preparation = (
+            self.single_download_service.prepare_download()
+        )
+        self.quality = preparation.quality
+        return preparation

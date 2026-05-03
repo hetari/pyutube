@@ -43,7 +43,7 @@ import sys
 import typer
 
 from pyutube.handlers import URLHandler
-from pyutube.services import DownloadService
+from pyutube.services.DownloadService import DownloadService
 from pyutube.utils import (
     __version__,
     check_for_updates,
@@ -110,13 +110,20 @@ def pyutube(
     download_service = DownloadService(url, path, None)
     if audio:
         download_service.is_audio = True
-        video, _streams, video_audio, _quality = download_service.download_preparing()
-        download_service.download_audio(video, video_audio)
+        preparation = download_service.download_preparing()
+        download_service.download_audio(preparation.video, preparation.video_audio)
 
     elif video or link_type == "short":
-        video, streams, video_audio, quality = download_service.download_preparing()
-        video_file = download_service.video_service.get_video_streams(quality, streams)
-        download_service.download_video(video, video_file, video_audio)
+        preparation = download_service.download_preparing()
+        video_file = download_service.video_service.get_video_streams(
+            preparation.quality,
+            preparation.streams,
+        )
+        download_service.download_video(
+            preparation.video,
+            video_file,
+            preparation.video_audio,
+        )
 
     elif link_type == "video":
         download_service.asking_video_or_audio()

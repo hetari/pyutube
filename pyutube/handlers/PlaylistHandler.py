@@ -2,10 +2,12 @@ import os
 import re
 import sys
 from concurrent.futures import ThreadPoolExecutor
+from typing import Optional
 
 from pytubefix import Playlist
 from pytubefix.helpers import safe_filename
 
+from pyutube.services.models import PlaylistDownloadPlan
 from pyutube.utils import (
     ask_for_make_playlist_in_order,
     ask_playlist_video_names,
@@ -20,7 +22,7 @@ class PlaylistHandler:
         self.path = path
         self.playlist_videos = []
 
-    def process_playlist(self):
+    def process_playlist(self) -> Optional[PlaylistDownloadPlan]:
         """Collect playlist metadata and ask the user what to download."""
         console.print("Processing playlist...")
 
@@ -64,7 +66,13 @@ class PlaylistHandler:
             console.print("Cancelled")
             return None
 
-        return new_path, is_audio, videos_selected, make_in_order, self.playlist_videos
+        return PlaylistDownloadPlan(
+            new_path=new_path,
+            is_audio=is_audio,
+            videos_selected=videos_selected,
+            make_in_order=make_in_order,
+            playlist_videos=self.playlist_videos,
+        )
 
     def get_all_playlist_videos_title(self, videos):
         """Fetch playlist titles while preserving their original order."""

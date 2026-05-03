@@ -1,7 +1,13 @@
-from .DownloadService import DownloadService
-from .VideoService import VideoService
-from .AudioService import AudioService
-from .FileService import FileService
+"""Service package for pyutube."""
 
+from pyutube.services.models import (
+    AvailableVideoStreams,
+    DownloadPreparation,
+    PlaylistDownloadPlan,
+)
 
-__all__ = ['DownloadService', 'VideoService', 'AudioService', 'FileService']
+__all__ = [
+    "AvailableVideoStreams",
+    "DownloadPreparation",
+    "PlaylistDownloadPlan",
+]

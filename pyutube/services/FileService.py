@@ -1,11 +1,7 @@
 import os
-import sys
 
 from pytubefix import YouTube
 from pytubefix.helpers import safe_filename
-from termcolor import colored
-
-from pyutube.utils import ask_rename_file, console, error_console
 
 
 class FileService:
@@ -21,42 +17,6 @@ class FileService:
         title = safe_filename(title)
 
         return f"{title}_{file_type}{extension}"
-
-    def handle_existing_file(
-        self,
-        video: YouTube,
-        filename: str,
-        path: str,
-        is_audio: bool = False,
-    ) -> str:
-        """Resolve filename collisions before downloading."""
-        if not self.is_file_exists(path, filename):
-            return filename
-
-        choice = ask_rename_file(filename)
-        if choice is None:
-            console.print("Download canceled", style="info")
-            sys.exit()
-
-        choice = choice.lower()
-        if choice.startswith("rename"):
-            new_filename = self.prompt_new_filename(filename)
-            if not new_filename:
-                error_console.print("Invalid filename")
-                sys.exit(1)
-
-            return self.generate_filename(video, is_audio, new_filename)
-
-        if choice.startswith("cancel"):
-            console.print("Download canceled", style="info")
-            sys.exit()
-
-        return filename
-
-    def prompt_new_filename(self, filename: str) -> str:
-        """Ask for a replacement filename."""
-        text = colored(filename, "yellow")
-        return input(f"Rename {text} to: ")
 
     @staticmethod
     def is_file_exists(path: str, filename: str) -> bool:
