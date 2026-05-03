@@ -2,6 +2,9 @@
 
 ### Enjoying my project? Please show your appreciation by starring it on GitHub! ⭐
 
+<a href="https://deepwiki.com/Hetari/pyutube">
+    <img src="https://deepwiki.com/badge.svg" alt="Ask in DeepWiki" />
+</a>
 <a href="https://github.com/Hetari/pyutube">
   <img src="https://img.shields.io/pypi/v/pyutube.svg?style=flat&label=Version" alt="Version">
 </a>
