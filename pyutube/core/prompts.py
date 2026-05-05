@@ -59,7 +59,7 @@ class PromptService:
         question = inquirer.List(
             "rename",
             message="Choose an action",
-            choices=["Rename it", "Overwrite it", self.cancel_prefix],
+            choices=["Rename it", "Overwrite it", "Skip", self.cancel_prefix],
         )
         return self._prompt_choice(question)
 

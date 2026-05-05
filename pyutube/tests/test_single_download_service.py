@@ -127,6 +127,92 @@ def test_single_download_service_download_audio_success_and_error(monkeypatch):
     error_print.assert_called()
 
 
+def test_single_download_service_download_audio_skip(monkeypatch):
+    import importlib
+
+    single_module = importlib.import_module("pyutube.services.SingleDownloadService")
+    monkeypatch.setattr(single_module.console, "print", Mock())
+    monkeypatch.setattr(single_module.error_console, "print", Mock())
+
+    audio_stream = SimpleNamespace(
+        default_filename="song.mp4",
+        mime_type="audio/mp4",
+        resolution="audio",
+    )
+    file_service = Mock()
+    file_service.generate_filename.return_value = "song_audio.wav"
+    conflict_resolver = Mock()
+    conflict_resolver.resolve.return_value = None
+    audio_converter = Mock()
+
+    service = SingleDownloadService(
+        "https://example.com",
+        "/downloads",
+        "720p",
+        is_audio=True,
+        file_service=file_service,
+        conflict_resolver=conflict_resolver,
+        audio_converter=audio_converter,
+        video_service=Mock(),
+    )
+
+    result = service.download_audio("video", audio_stream)
+
+    assert result == "song_audio.wav"
+    file_service.save_file.assert_not_called()
+    audio_converter.convert_audio.assert_not_called()
+
+
+def test_single_download_service_download_video_skip_and_merge_existing_files(monkeypatch):
+    import importlib
+
+    single_module = importlib.import_module("pyutube.services.SingleDownloadService")
+    monkeypatch.setattr(single_module, "safe_filename", lambda value: f"safe-{value}")
+    monkeypatch.setattr(single_module.console, "print", Mock())
+    monkeypatch.setattr(single_module.error_console, "print", Mock())
+
+    video_stream = SimpleNamespace(
+        default_filename="Regex is weird. So, I built it_144p.mp4",
+        resolution="144p",
+        mime_type="video/mp4",
+    )
+    video_audio = SimpleNamespace(
+        default_filename="Regex is weird. So, I built it_audio.mp4",
+        mime_type="audio/mp4",
+        resolution="audio",
+    )
+    file_service = Mock()
+    file_service.generate_filename.side_effect = [
+        "Regex is weird. So, I built it_144p.mp4",
+        "Regex is weird. So, I built it_audio.wav",
+    ]
+    conflict_resolver = Mock()
+    conflict_resolver.resolve.side_effect = [None, None]
+    video_service = Mock()
+    video_service.merging = Mock()
+    audio_converter = Mock()
+
+    service = SingleDownloadService(
+        "https://example.com",
+        "/downloads",
+        "144p",
+        file_service=file_service,
+        conflict_resolver=conflict_resolver,
+        audio_converter=audio_converter,
+        video_service=video_service,
+    )
+
+    result = service.download_video("video", video_stream, video_audio)
+
+    assert result == "144p"
+    file_service.save_file.assert_not_called()
+    audio_converter.convert_audio.assert_not_called()
+    video_service.merging.assert_called_once_with(
+        "safe-Regex is weird. So, I built it_144p.mp4",
+        "safe-Regex is weird. So, I built it_audio.wav",
+    )
+
+
 def test_single_download_service_download_video_success_and_error(monkeypatch):
     import importlib
 

@@ -93,12 +93,19 @@ class SingleDownloadService:
             base_name, extension = os.path.splitext(audio_filename)
             audio_filename = f"{title_number}__{base_name}{extension}"
 
-        audio_filename = self.conflict_resolver.resolve(
+        resolved_audio_filename = self.conflict_resolver.resolve(
             video,
             audio_filename,
             self.path,
             True,
         )
+        if resolved_audio_filename is None:
+            if self.is_audio:
+                console.print("\n\n✅ Download completed", style="success")
+            return audio_filename
+
+        audio_filename = resolved_audio_filename
+
         temp_audio_filename = self._temp_audio_filename(audio_filename, video_audio)
         temp_audio_path = os.path.join(self.path, temp_audio_filename)
         audio_path = os.path.join(self.path, audio_filename)
@@ -162,16 +169,22 @@ class SingleDownloadService:
             video_base_name, video_extension = os.path.splitext(video_filename)
             video_filename = f"{title_number}__{video_base_name}{video_extension}"
 
-        video_filename = self.conflict_resolver.resolve(
+        resolved_video_filename = self.conflict_resolver.resolve(
             video,
             video_filename,
             self.path,
             self.is_audio,
         )
+        skip_video_download = resolved_video_filename is None
+        if not skip_video_download:
+            video_filename = resolved_video_filename
 
         try:
             console.print("⏳ Downloading the video...", style="info")
-            self.file_service.save_file(video_stream, video_filename, self.path)
+            if not skip_video_download:
+                self.file_service.save_file(video_stream, video_filename, self.path)
+            else:
+                console.print("Using existing video file", style="info")
             audio_filename = self.download_audio(
                 video,
                 video_audio,

@@ -22,7 +22,7 @@ class FileConflictResolver:
         filename: str,
         path: str,
         is_audio: bool = False,
-    ) -> str:
+    ) -> Optional[str]:
         """Return a safe filename, prompting only when a collision exists."""
         if not self.file_service.is_file_exists(path, filename):
             return filename
@@ -40,6 +40,11 @@ class FileConflictResolver:
                 sys.exit(1)
 
             return self.file_service.generate_filename(video, is_audio, new_filename)
+
+        if choice.startswith("skip"):
+            media_type = "audio" if is_audio else "video"
+            console.print(f"Skipping existing {media_type} file", style="info")
+            return None
 
         if choice.startswith("cancel"):
             console.print("Download canceled", style="info")

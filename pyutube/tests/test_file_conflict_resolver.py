@@ -21,6 +21,9 @@ def test_file_conflict_resolver_paths(monkeypatch):
     with pytest.raises(SystemExit):
         resolver.resolve(object(), "demo.mp4", "/tmp", False)
 
+    monkeypatch.setattr("pyutube.services.FileConflictResolver.ask_rename_file", lambda filename: "Skip")
+    assert resolver.resolve(object(), "demo.mp4", "/tmp", False) is None
+
 
 def test_file_conflict_resolver_renames_existing_file(monkeypatch):
     video = object()
