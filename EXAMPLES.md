@@ -20,7 +20,7 @@ pyutube "YOUTUBE_PLAYLIST_LINK" [the_download_path]
 ```
 
 1. Choose the download format: video or audio.
-2. If you select video, pick your desired resolution. For audio, it’ll download everything right away! 🔥
+2. If you select video, pick your desired resolution. For audio, it’ll download everything right away as WAV unless you add `--mp3`! 🔥
 
 The tool will check all available resolutions from the first video in the playlist and download them in that resolution. 👍
 
@@ -33,7 +33,7 @@ pyutube "YOUTUBE_LINK" OR "SHORT_LINK" [the_download_path]
 ```
 
 1. Select the format: video or audio.
-2. If it’s a video, choose the resolution; otherwise, the audio downloads immediately! 🔥
+2. If it’s a video, choose the resolution; otherwise, the audio downloads immediately as WAV unless you add `--mp3`! 🔥
 
 Examples:
 
@@ -55,6 +55,7 @@ Examples:
 ```bash
 pyutube cMPnY7EuZvo -a
 pyutube -a youtu.be/cMPnY7EuZvo
+pyutube -a --mp3 youtu.be/cMPnY7EuZvo
 ```
 
 And you’re all set! 🎉

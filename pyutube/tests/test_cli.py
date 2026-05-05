@@ -35,11 +35,15 @@ def test_cli_branches(monkeypatch):
             self.get_playlist_links = Mock()
 
     fake = FakeDownloadService()
+    captured_kwargs = {}
     monkeypatch.setattr("pyutube.cli.check_for_updates", lambda: None)
     monkeypatch.setattr("pyutube.cli.clear", lambda: None)
     monkeypatch.setattr("pyutube.cli.check_internet_connection", lambda: True)
     monkeypatch.setattr("pyutube.cli.URLHandler", FakeURLHandler)
-    monkeypatch.setattr("pyutube.cli.DownloadService", lambda *args, **kwargs: fake)
+    monkeypatch.setattr(
+        "pyutube.cli.DownloadService",
+        lambda *args, **kwargs: captured_kwargs.update(kwargs) or fake,
+    )
     monkeypatch.setattr("pyutube.cli.sys.exit", Mock(side_effect=SystemExit))
 
     with pytest.raises(SystemExit):
@@ -47,11 +51,13 @@ def test_cli_branches(monkeypatch):
             url="https://example.com/watch?v=1",
             path="/tmp",
             audio=True,
+            mp3=True,
             video=False,
             version=False,
-        )
+    )
     fake.download_preparing.assert_called_once()
     fake.download_audio.assert_called_once()
+    assert captured_kwargs["audio_format"] == "mp3"
 
     fake.download_preparing.reset_mock()
     fake.download_audio.reset_mock()

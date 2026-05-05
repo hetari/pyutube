@@ -1,4 +1,4 @@
-"""Convert downloaded audio streams into MP3 files."""
+"""Convert downloaded audio streams into audio files."""
 
 import os
 import subprocess
@@ -10,32 +10,56 @@ from pyutube.ui import console, error_console
 
 
 class AudioConversionService:
-    """Convert a downloaded audio file to a real MP3 using ffmpeg."""
+    """Convert a downloaded audio file to a target audio container using ffmpeg."""
 
-    def convert_to_mp3(self, input_path: str, output_path: str) -> str:
-        """Convert ``input_path`` to ``output_path`` and return the mp3 path."""
+    def convert_audio(self, input_path: str, output_path: str) -> str:
+        """Convert ``input_path`` to ``output_path`` and return the output path."""
         ffmpeg_exe = imageio_ffmpeg.get_ffmpeg_exe()
-        command = [
-            ffmpeg_exe,
-            "-y",
-            "-i",
-            input_path,
-            "-vn",
-            "-codec:a",
-            "libmp3lame",
-            "-q:a",
-            "2",
-            output_path,
-        ]
+        output_format = os.path.splitext(output_path)[1].lower()
+        if output_format == ".mp3":
+            command = [
+                ffmpeg_exe,
+                "-y",
+                "-i",
+                input_path,
+                "-vn",
+                "-codec:a",
+                "libmp3lame",
+                "-q:a",
+                "2",
+                output_path,
+            ]
+            success_message = "✅ Audio converted to mp3"
+        elif output_format == ".wav":
+            command = [
+                ffmpeg_exe,
+                "-y",
+                "-i",
+                input_path,
+                "-vn",
+                "-acodec",
+                "pcm_s16le",
+                output_path,
+            ]
+            success_message = "✅ Audio converted to wav"
+        else:
+            error_console.print(
+                f"❗ Unsupported audio format: {output_format or 'unknown'}"
+            )
+            sys.exit(1)
 
         try:
             subprocess.run(command, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         except subprocess.CalledProcessError as error:
-            error_console.print(f"❗ Error converting audio to mp3: {error}")
+            error_console.print(f"❗ Error converting audio to {output_format.lstrip('.')}: {error}")
             sys.exit(1)
 
         if os.path.exists(input_path) and input_path != output_path:
             os.remove(input_path)
 
-        console.print("✅ Audio converted to mp3", style="success")
+        console.print(success_message, style="success")
         return output_path
+
+    def convert_to_mp3(self, input_path: str, output_path: str) -> str:
+        """Backward-compatible wrapper for MP3 conversion."""
+        return self.convert_audio(input_path, output_path)

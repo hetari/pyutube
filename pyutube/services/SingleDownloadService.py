@@ -23,6 +23,7 @@ class SingleDownloadService:
         path: str,
         quality: str,
         is_audio: bool = False,
+        audio_format: str = "wav",
         make_playlist_in_order: bool = False,
         video_service: Optional[Any] = None,
         file_service: Optional[Any] = None,
@@ -33,6 +34,7 @@ class SingleDownloadService:
         self.path = path
         self.quality = quality
         self.is_audio = is_audio
+        self.audio_format = audio_format
         self.make_playlist_in_order = make_playlist_in_order
         self.file_service = file_service or FileService()
         self.conflict_resolver = conflict_resolver or FileConflictResolver(
@@ -84,6 +86,7 @@ class SingleDownloadService:
         audio_filename = self.file_service.generate_filename(
             video_audio,
             is_audio=True,
+            audio_format=self.audio_format,
         )
 
         if self.make_playlist_in_order:
@@ -105,7 +108,7 @@ class SingleDownloadService:
                 console.print("⏳ Downloading the audio...", style="info")
 
             self.file_service.save_file(video_audio, temp_audio_filename, self.path)
-            self.audio_converter.convert_to_mp3(temp_audio_path, audio_path)
+            self.audio_converter.convert_audio(temp_audio_path, audio_path)
         except Exception as error:
             error_console.print(
                 f"❗ Error (please report this in github issue: https://github.com/Hetari/pyutube/issues):\n {error}"

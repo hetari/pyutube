@@ -15,12 +15,14 @@ class DownloadService:
         path: str,
         quality: str,
         is_audio: bool = False,
+        audio_format: str = "wav",
         make_playlist_in_order: bool = False,
     ):
         self.url = url
         self.path = path
         self.quality = quality
         self.is_audio = is_audio
+        self.audio_format = audio_format
         self.make_playlist_in_order = make_playlist_in_order
 
         self.single_download_service = SingleDownloadService(
@@ -28,6 +30,7 @@ class DownloadService:
             path=self.path,
             quality=self.quality,
             is_audio=self.is_audio,
+            audio_format=self.audio_format,
             make_playlist_in_order=self.make_playlist_in_order,
         )
         self.playlist_download_service = PlaylistDownloadService(
@@ -42,6 +45,7 @@ class DownloadService:
         self.single_download_service.path = self.path
         self.single_download_service.quality = self.quality
         self.single_download_service.is_audio = self.is_audio
+        self.single_download_service.audio_format = self.audio_format
         self.single_download_service.make_playlist_in_order = (
             self.make_playlist_in_order
         )
@@ -55,6 +59,7 @@ class DownloadService:
         path: str,
         quality: str,
         is_audio: bool,
+        audio_format: str,
         make_playlist_in_order: bool,
     ) -> SingleDownloadService:
         """Create a worker that reuses shared file-conflict and file helpers."""
@@ -63,6 +68,7 @@ class DownloadService:
             path=path,
             quality=quality,
             is_audio=is_audio,
+            audio_format=audio_format,
             make_playlist_in_order=make_playlist_in_order,
             file_service=self.file_service,
             conflict_resolver=self.single_download_service.conflict_resolver,
@@ -114,6 +120,7 @@ class DownloadService:
             self.url,
             self.path,
             self.quality,
+            self.audio_format,
         )
 
     def download_preparing(self) -> DownloadPreparation:

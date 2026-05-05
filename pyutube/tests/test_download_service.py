@@ -46,6 +46,7 @@ def test_download_service_delegates_to_worker(monkeypatch):
         "https://example.com",
         "/tmp",
         "720p",
+        "wav",
     )
 
 

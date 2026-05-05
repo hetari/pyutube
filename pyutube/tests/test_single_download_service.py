@@ -53,7 +53,7 @@ def test_single_download_service_download_routes(monkeypatch):
         audio_converter=Mock(),
     )
     service.prepare_download = Mock(return_value=preparation)
-    service.download_audio = Mock(return_value="audio.mp3")
+    service.download_audio = Mock(return_value="audio.wav")
     service.download_video = Mock(return_value="merged")
 
     service.is_audio = True
@@ -87,10 +87,10 @@ def test_single_download_service_download_audio_success_and_error(monkeypatch):
         resolution="audio",
     )
     file_service = Mock()
-    file_service.generate_filename.return_value = "song_audio.mp3"
+    file_service.generate_filename.return_value = "song_audio.wav"
     file_service.save_file = Mock()
     conflict_resolver = Mock()
-    conflict_resolver.resolve.return_value = "2__song_audio.mp3"
+    conflict_resolver.resolve.return_value = "2__song_audio.wav"
     audio_converter = Mock()
 
     service = SingleDownloadService(
@@ -107,13 +107,17 @@ def test_single_download_service_download_audio_success_and_error(monkeypatch):
 
     result = service.download_audio("video", audio_stream, title_number=2)
 
-    assert result == "2__song_audio.mp3"
-    file_service.generate_filename.assert_called_once_with(audio_stream, is_audio=True)
-    conflict_resolver.resolve.assert_called_once_with("video", "2__song_audio.mp3", "/downloads", True)
+    assert result == "2__song_audio.wav"
+    file_service.generate_filename.assert_called_once_with(
+        audio_stream,
+        is_audio=True,
+        audio_format="wav",
+    )
+    conflict_resolver.resolve.assert_called_once_with("video", "2__song_audio.wav", "/downloads", True)
     file_service.save_file.assert_called_once_with(audio_stream, "2__song_audio.m4a", "/downloads")
-    audio_converter.convert_to_mp3.assert_called_once_with(
+    audio_converter.convert_audio.assert_called_once_with(
         "/downloads/2__song_audio.m4a",
-        "/downloads/2__song_audio.mp3",
+        "/downloads/2__song_audio.wav",
     )
 
     file_service.save_file.side_effect = RuntimeError("boom")
@@ -150,7 +154,7 @@ def test_single_download_service_download_video_success_and_error(monkeypatch):
         audio_converter=audio_converter,
         video_service=video_service,
     )
-    service.download_audio = Mock(return_value="song audio.mp3")
+    service.download_audio = Mock(return_value="song audio.wav")
 
     result = service.download_video("video", "stream", "audio", title_number=3)
 
@@ -159,7 +163,7 @@ def test_single_download_service_download_video_success_and_error(monkeypatch):
     conflict_resolver.resolve.assert_called_once_with("video", "clip 720p.mp4", "/downloads", False)
     file_service.save_file.assert_called_once_with("stream", "clip 720p.mp4", "/downloads")
     service.download_audio.assert_called_once_with("video", "audio", 3)
-    video_service.merging.assert_called_once_with("safe-clip 720p.mp4", "safe-song audio.mp3")
+    video_service.merging.assert_called_once_with("safe-clip 720p.mp4", "safe-song audio.wav")
 
     file_service.save_file.side_effect = RuntimeError("boom")
     with pytest.raises(SystemExit):
@@ -215,6 +219,7 @@ def test_single_download_service_audio_conflict_uses_audio_flag():
         "/tmp",
         "",
         is_audio=True,
+        audio_format="mp3",
         file_service=file_service,
         conflict_resolver=conflict_resolver,
         audio_converter=audio_converter,
@@ -222,6 +227,11 @@ def test_single_download_service_audio_conflict_uses_audio_flag():
 
     service.download_audio(video, audio_stream)
 
+    file_service.generate_filename.assert_called_once_with(
+        audio_stream,
+        is_audio=True,
+        audio_format="mp3",
+    )
     conflict_resolver.resolve.assert_called_once_with(
         video,
         "track_audio.mp3",
@@ -233,7 +243,7 @@ def test_single_download_service_audio_conflict_uses_audio_flag():
         "track_audio.m4a",
         "/tmp",
     )
-    audio_converter.convert_to_mp3.assert_called_once_with(
+    audio_converter.convert_audio.assert_called_once_with(
         "/tmp/track_audio.m4a",
         "/tmp/track_audio.mp3",
     )

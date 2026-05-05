@@ -21,13 +21,14 @@ def test_playlist_download_service_uses_playlist_plan(monkeypatch):
 
     created_downloaders = []
 
-    def factory(url, path, quality, is_audio, make_playlist_in_order):
+    def factory(url, path, quality, is_audio, audio_format, make_playlist_in_order):
         is_first = len(created_downloaders) == 0
         downloader = Mock()
         downloader.url = url
         downloader.path = path
         downloader.quality = quality
         downloader.is_audio = is_audio
+        downloader.audio_format = audio_format
         downloader.make_playlist_in_order = make_playlist_in_order
         downloader.refresh_video_service = Mock()
         downloader.download = Mock(return_value="720p" if is_first else None)
@@ -35,12 +36,14 @@ def test_playlist_download_service_uses_playlist_plan(monkeypatch):
         return downloader
 
     service = PlaylistDownloadService(factory)
-    service.download_playlist("https://www.youtube.com/playlist?list=test", "/tmp", "360p")
+    service.download_playlist("https://www.youtube.com/playlist?list=test", "/tmp", "360p", "wav")
 
     assert len(created_downloaders) == 2
     assert created_downloaders[0].url.endswith("video-1")
     assert created_downloaders[1].url.endswith("video-2")
     assert created_downloaders[0].quality == "360p"
     assert created_downloaders[1].quality == "720p"
+    assert created_downloaders[0].audio_format == "wav"
+    assert created_downloaders[1].audio_format == "wav"
     created_downloaders[0].download.assert_called_once_with(1)
     created_downloaders[1].download.assert_called_once_with(2)

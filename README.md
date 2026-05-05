@@ -37,7 +37,7 @@
 
 ## Why Pyutube?
 
-Pyutube is a small CLI wrapper around `pytubefix`. It supports videos, shorts, audio-only downloads, and playlists with a simple prompt-driven flow.
+Pyutube is a small CLI wrapper around `pytubefix`. It supports videos, shorts, audio-only downloads, and playlists with a simple prompt-driven flow. Audio downloads are saved as WAV by default, with an optional MP3 conversion flag.
 
 ## 🛠️ Installation
 
@@ -87,17 +87,18 @@ python -m pyutube --help
 Download a video, short, or playlist with:
 
 ```bash
-pyutube download "YOUTUBE_LINK"
-pyutube download "YOUTUBE_LINK" "/path/to/save"
+pyutube "YOUTUBE_LINK"
+pyutube "YOUTUBE_LINK" "/path/to/save"
 ```
 
 Common examples:
 
 ```bash
-pyutube download "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
-pyutube download "https://www.youtube.com/watch?v=dQw4w9WgXcQ" -a
-pyutube download "https://www.youtube.com/watch?v=dQw4w9WgXcQ" -f
-pyutube download "https://www.youtube.com/playlist?list=PLAYLIST_ID"
+pyutube "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+pyutube "https://www.youtube.com/watch?v=dQw4w9WgXcQ" -a
+pyutube "https://www.youtube.com/watch?v=dQw4w9WgXcQ" -a --mp3
+pyutube "https://www.youtube.com/watch?v=dQw4w9WgXcQ" -f
+pyutube "https://www.youtube.com/playlist?list=PLAYLIST_ID"
 ```
 
 > [!NOTE]
@@ -114,11 +115,12 @@ pyutube download "https://www.youtube.com/playlist?list=PLAYLIST_ID"
 
 ### Options
 
-| Option                                              | Description                            |
-| --------------------------------------------------- | -------------------------------------- |
-| `-v` <span style="color:cyan">or</span> `--version` | Display the current version number.    |
-| `-a` <span style="color:cyan">or</span> `--audio`   | Download audio only, skipping prompts. |
-| `-f` <span style="color:cyan">or</span> `--footage` | Download video only, skipping prompts. |
+| Option                                              | Description                                   |
+| --------------------------------------------------- | --------------------------------------------- |
+| `-v` <span style="color:cyan">or</span> `--version` | Display the current version number.           |
+| `-a` <span style="color:cyan">or</span> `--audio`   | Download audio only as WAV, skipping prompts. |
+| `--mp3`                                             | Convert audio downloads to MP3.               |
+| `-f` <span style="color:cyan">or</span> `--footage` | Download video only, skipping prompts.        |
 
 ## 🧪 Test And Quality
 
@@ -180,7 +182,7 @@ This project is licensed under the [MIT License](LICENSE).
 - [x] **Auto Update package if new version available**
 - [x] **Support Optional Numbering for Downloaded Playlist Videos**
 - [x] **Improve code health**
-- [x] **Support downloading sounds (mp3 format not a audio/mp4)**
+- [x] **Support downloading sounds (WAV by default, MP3 optional)**
 - [ ] **Support Subtitles Download**
 - [ ] **Support setting for downloading folder**
 - [ ] **Download Thumbnails with Videos and Audio**

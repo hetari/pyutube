@@ -7,7 +7,7 @@ def test_audio_conversion_service_converts_and_cleans_temp(monkeypatch, tmp_path
     import pyutube.services.AudioConversionService as audio_module
 
     input_path = tmp_path / "raw.mp4"
-    output_path = tmp_path / "final.mp3"
+    output_path = tmp_path / "final.wav"
     input_path.write_text("raw-audio")
 
     run_mock = Mock(return_value=None)
@@ -20,7 +20,7 @@ def test_audio_conversion_service_converts_and_cleans_temp(monkeypatch, tmp_path
     monkeypatch.setattr(audio_module.error_console, "print", Mock())
 
     service = AudioConversionService()
-    result = service.convert_to_mp3(str(input_path), str(output_path))
+    result = service.convert_audio(str(input_path), str(output_path))
 
     assert result == str(output_path)
     run_mock.assert_called_once()

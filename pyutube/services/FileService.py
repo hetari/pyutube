@@ -9,10 +9,16 @@ class FileService:
         """Download the selected stream to the target path."""
         media.download(output_path=path, filename=filename)
 
-    def generate_filename(self, media: Any, is_audio: bool = False, filename: str = ""):
+    def generate_filename(
+        self,
+        media: Any,
+        is_audio: bool = False,
+        filename: str = "",
+        audio_format: str = "wav",
+    ):
         """Build a filename from the stream metadata."""
         file_type = "audio" if is_audio else media.resolution
-        extension = ".mp3" if is_audio else f".{media.mime_type.split('/')[1]}"
+        extension = f".{audio_format}" if is_audio else f".{media.mime_type.split('/')[1]}"
         title = filename if filename else media.default_filename.split(".")[0]
         title = safe_filename(title)
 

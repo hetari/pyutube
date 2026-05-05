@@ -10,7 +10,8 @@ def test_file_service_helpers(tmp_path):
     audio_media = SimpleNamespace(default_filename="track.webm", resolution="audio", mime_type="audio/mp4")
 
     assert file_service.generate_filename(media) == "demo_720p.mp4"
-    assert file_service.generate_filename(audio_media, is_audio=True) == "track_audio.mp3"
+    assert file_service.generate_filename(audio_media, is_audio=True) == "track_audio.wav"
+    assert file_service.generate_filename(audio_media, is_audio=True, audio_format="mp3") == "track_audio.mp3"
 
     output = Mock()
     media.download = output
