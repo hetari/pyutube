@@ -1,4 +1,6 @@
-from pytubefix import YouTube
+from typing import Optional
+
+from pytubefix import Stream, YouTube
 from termcolor import colored
 from yaspin import yaspin
 from yaspin.spinners import Spinners
@@ -11,6 +13,6 @@ class AudioService:
         color="green",
         spinner=Spinners.dots13,
     )
-    def get_audio_streams(video: YouTube) -> YouTube:
+    def get_audio_streams(video: YouTube) -> Optional[Stream]:
         """Return the first available audio-only stream."""
         return video.streams.filter(only_audio=True).order_by("mime_type").first()

@@ -1,10 +1,9 @@
 """Merge downloaded video and audio streams."""
 
 import os
-import subprocess
 import sys
 
-import imageio_ffmpeg
+from moviepy.video.io.ffmpeg_tools import ffmpeg_merge_video_audio
 
 from pyutube.ui import error_console
 
@@ -52,31 +51,13 @@ class VideoMergeService:
     @staticmethod
     def _merge_with_ffmpeg(video_path: str, audio_path: str, output_file: str) -> None:
         """Mux the downloaded streams into a real MP4 container with ffmpeg."""
-        ffmpeg_exe = imageio_ffmpeg.get_ffmpeg_exe()
-        command = [
-            ffmpeg_exe,
-            "-y",
-            "-i",
+        ffmpeg_merge_video_audio(
             video_path,
-            "-i",
             audio_path,
-            "-c:v",
-            "copy",
-            "-c:a",
-            "aac",
-            "-b:a",
-            "192k",
-            "-shortest",
-            "-movflags",
-            "+faststart",
             output_file,
-        ]
-
-        subprocess.run(
-            command,
-            check=True,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
+            # vcodec='copy',
+            # acodec='copy',
+            logger=None
         )
 
     def _find_downloaded_file(self, filename: str):

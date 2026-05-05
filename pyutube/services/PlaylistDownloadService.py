@@ -12,7 +12,7 @@ class PlaylistDownloadService:
     def __init__(
         self,
         single_download_factory: Optional[
-            Callable[[str, str, str, bool, bool], Any]
+            Callable[[str, str, str, bool, str, bool], Any]
         ] = None,
     ) -> None:
         self.single_download_factory = single_download_factory or self._default_factory

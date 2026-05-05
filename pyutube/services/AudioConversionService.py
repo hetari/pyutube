@@ -14,44 +14,37 @@ class AudioConversionService:
 
     def convert_audio(self, input_path: str, output_path: str) -> str:
         """Convert ``input_path`` to ``output_path`` and return the output path."""
-        ffmpeg_exe = imageio_ffmpeg.get_ffmpeg_exe()
         output_format = os.path.splitext(output_path)[1].lower()
         if output_format == ".mp3":
+            ffmpeg_exe = imageio_ffmpeg.get_ffmpeg_exe()
             command = [
                 ffmpeg_exe,
                 "-y",
                 "-i",
                 input_path,
                 "-vn",
-                "-codec:a",
+                "-c:a",
                 "libmp3lame",
                 "-q:a",
-                "2",
+                "128k",
                 output_path,
             ]
             success_message = "✅ Audio converted to mp3"
-        elif output_format == ".wav":
-            command = [
-                ffmpeg_exe,
-                "-y",
-                "-i",
-                input_path,
-                "-vn",
-                "-acodec",
-                "pcm_s16le",
-                output_path,
-            ]
-            success_message = "✅ Audio converted to wav"
         else:
-            error_console.print(
-                f"❗ Unsupported audio format: {output_format or 'unknown'}"
-            )
-            sys.exit(1)
+            if input_path != output_path:
+                os.replace(input_path, output_path)
+            console.print("✅ Audio downloaded", style="success")
+            return output_path
 
         try:
-            subprocess.run(command, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            if command and len(command):
+                subprocess.run(
+                    command, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
+                )
         except subprocess.CalledProcessError as error:
-            error_console.print(f"❗ Error converting audio to {output_format.lstrip('.')}: {error}")
+            error_console.print(
+                f"❗ Error converting audio to {output_format.lstrip('.')}: {error}"
+            )
             sys.exit(1)
 
         if os.path.exists(input_path) and input_path != output_path:
