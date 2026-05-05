@@ -1,5 +1,26 @@
 #### 1.5.22 (2026-05-05)
 
+##### Chores
+
+*  bump version (2b6ab898)
+
+##### Documentation Changes
+
+*  update installation instructions in README and add subtitle usage documentation (e0b5ddb7)
+*  add DeepWiki badge to README (b0c79224)
+
+##### New Features
+
+*  add skip option to file conflict resolution and update single download service logic (7682523d)
+*  add MP3 conversion support (7d8615c9)
+*  add subtitle documentation, bump version, and include imageio-ffmpeg as a dependency (51b66845)
+
+##### Refactors
+
+*  replace raw subprocess calls with moviepy utilities and optimize audio conversion logic (407f1054)
+
+#### 1.5.22 (2026-05-05)
+
 ##### Documentation Changes
 
 *  update installation instructions in README and add subtitle usage documentation (e0b5ddb7)
