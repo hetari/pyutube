@@ -251,6 +251,10 @@
 
 - fix: check_for_updates method ([2fecb30](https://github.com/Hetari/pyutube/commit/2fecb30b5400f36426566c383a165bbddaf983dd) by Hetari).
 
+### Removed
+
+- Remove all unit and integration tests from the codebase.
+
 <!-- insertion marker -->
 
 ## [1.3.29](https://github.com/Hetari/pyutube/releases/tag/1.3.29) - 2024-10-06

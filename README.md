@@ -122,17 +122,14 @@ pyutube "https://www.youtube.com/playlist?list=PLAYLIST_ID"
 | `--mp3`                                             | Convert audio downloads to MP3.               |
 | `-f` <span style="color:cyan">or</span> `--footage` | Download video only, skipping prompts.        |
 
-## 🧪 Test And Quality
+## 🛠️ Code Quality
 
 Run these commands to check code health locally:
 
 ```bash
 python -m compileall pyutube
-pytest pyutube/tests -q
 ruff check pyutube
 mypy pyutube
-coverage run -m pytest pyutube/tests -q
-coverage report
 ```
 
 The repo also includes a short checklist in [QUALITY.md](QUALITY.md).

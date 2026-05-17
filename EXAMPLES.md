@@ -65,7 +65,7 @@ And you’re all set! 🎉
 Need the video fast? Use:
 
 ```bash
-pyutube <Y"OUTUBE_LINK" OR "SHORT_LINK" [the_download_path] -f
+pyutube "YOUTUBE_LINK" OR "SHORT_LINK" [the_download_path] -f
 ```
 
 1. Choose your desired resolution.

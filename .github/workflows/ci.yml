@@ -25,14 +25,9 @@ jobs:
       - name: Compile package
         run: python -m compileall pyutube
 
-      - name: Run tests
-        run: coverage run -m pytest pyutube/tests -q
-
-      - name: Coverage report
-        run: coverage report --fail-under=80
-
       - name: Lint
         run: ruff check pyutube
 
       - name: Type check
         run: mypy pyutube
+

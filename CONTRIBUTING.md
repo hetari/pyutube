@@ -11,7 +11,7 @@ We welcome various types of contributions, including but not limited to:
 - Bug fixes.
 - Feature enhancements.
 - Documentation improvements.
-- Testing and bug triaging.
+- Manual verification and bug triaging.
 - Suggestions and feedback.
 - ...
 
@@ -36,7 +36,7 @@ If you're new to open-source contribution, don't worry! Here's how you can get s
 1. **Fork** the repository to your GitHub account.
 2. **Clone** your forked repository to your local machine.
 3. **Make Changes:** Implement your desired changes or fixes.
-4. **Test:** Ensure your changes work as expected.
+4. **Verify:** Ensure your changes work as expected by running the CLI locally.
 5. **Commit:** Follow the commit message guidelines.
 6. **Push:** Push your changes to your forked repository.
 7. **Submit:** Create a pull request, detailing the changes you've made and why they're necessary.
@@ -47,7 +47,7 @@ If you're new to open-source contribution, don't worry! Here's how you can get s
 
 If you are a bigger contributor, feel free to start with:
 
-- You can start by looking through issues - issues which should only require a few lines of code, and a test or two.
+- You can start by looking through issues - simple bug fixes or features which should only require a few lines of code.
 - Fix spelling / typo / grammar mistakes in the documentation
 - Comment clean up
 - Adding logging messages or debugging output
