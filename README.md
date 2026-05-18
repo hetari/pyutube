@@ -1,9 +1,31 @@
-# Pyutube
+# 📹 Pyutube - The Simplest YouTube Downloader CLI
+
+### Enjoying my project? Please show your appreciation by starring it on GitHub! ⭐
+
+<a href="https://deepwiki.com/Hetari/pyutube">
+    <img src="https://deepwiki.com/badge.svg" alt="Ask in DeepWiki" />
+</a>
+<a href="https://github.com/Hetari/pyutube">
+  <img src="https://img.shields.io/pypi/v/pyutube.svg?style=flat&label=Version" alt="Version">
+</a>
+<a href="https://pepy.tech/projects/pyutube">
+  <img src="https://static.pepy.tech/badge/pyutube" alt="Downloads">
+</a>
+<a href="https://pepy.tech/projects/pyutube">
+  <img src="https://static.pepy.tech/badge/pyutube/month" alt="Downloads per Month">
+</a>
+<a href="https://pepy.tech/projects/pyutube">
+  <img src="https://static.pepy.tech/badge/pyutube/week" alt="Downloads per Week">
+</a>
 
 Pyutube is a small CLI for downloading YouTube videos, shorts, audio, and playlists.
 
-> [!IMPORTANT]
-> `ffmpeg` must be on your `PATH` for video merging and audio conversion.
+<a href="https://ibb.co/27wcFYN">
+   <img src="https://i.ibb.co/MDbPg56/Screenshot-from-2024-04-08-21-38-02-transformed.png" alt="Pyutube" style="width: 100%;">
+</a>
+
+> [!NOTE]
+> Have a feature request or bug report? [tell me](https://github.com/Hetari/pyutube/issues/new)
 
 ## Install
 
