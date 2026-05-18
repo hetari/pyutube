@@ -1,5 +1,4 @@
 # List of dependencies
-setuptools==75.6.0
 typer==0.15.1
 requests==2.32.3
 rich==13.9.4
@@ -7,4 +6,3 @@ yaspin==3.1.0
 yt-dlp==2026.03.17
 inquirer==3.4.0
 termcolor==2.3.0
-imageio-ffmpeg==0.6.0

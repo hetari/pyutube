@@ -6,9 +6,9 @@ from typing import Any, Optional
 
 from pyutube.services.FileConflictResolver import FileConflictResolver
 from pyutube.services.FileService import FileService
+from pyutube.services.models import DownloadPreparation
 from pyutube.services.VideoService import VideoService
 from pyutube.services.YtDlpService import YtDlpService
-from pyutube.services.models import DownloadPreparation
 from pyutube.ui import console, error_console
 
 

@@ -61,8 +61,6 @@ setup(
         "requests",
         "rich",
         "termcolor",
-        "setuptools",
-        "imageio-ffmpeg",
     ],
 
     extras_require={

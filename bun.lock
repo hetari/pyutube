@@ -1,6 +1,6 @@
 {
   "lockfileVersion": 1,
-  "configVersion": 0,
+  "configVersion": 1,
   "workspaces": {
     "": {
       "name": "pyutube",
@@ -14,7 +14,7 @@
 
     "commander": ["commander@2.20.3", "", {}, "sha512-GpVkmM8vF2vQUkj2LvZmD35JxeJOLCwJ9cUkugyk2nuhbv3+mJvpLYYt+0+USMxE+oj+ey/lJEnhZw75x/OMcQ=="],
 
-    "generate-changelog": ["generate-changelog@1.8.0", "", { "dependencies": { "bluebird": "^3.0.6", "commander": "^2.9.0", "github-url-from-git": "^1.4.0" }, "bin": { "changelog": "bin/generate", "generate-changelog": "bin/generate" } }, "sha512-msgpxeB75Ziyg3wGsZuPNl7c5RxChMKmYcAX5obnhUow90dBZW3nLic6nxGtst7Bpx453oS6zAIHcX7F3QVasw=="],
+    "generate-changelog": ["generate-changelog@1.8.0", "", { "dependencies": { "bluebird": "^3.0.6", "commander": "^2.9.0", "github-url-from-git": "^1.4.0" }, "bin": { "changelog": "./bin/generate", "generate-changelog": "./bin/generate" } }, "sha512-msgpxeB75Ziyg3wGsZuPNl7c5RxChMKmYcAX5obnhUow90dBZW3nLic6nxGtst7Bpx453oS6zAIHcX7F3QVasw=="],
 
     "github-url-from-git": ["github-url-from-git@1.5.0", "", {}, "sha512-WWOec4aRI7YAykQ9+BHmzjyNlkfJFG8QLXnDTsLz/kZefq7qkzdfo4p6fkYYMIq1aj+gZcQs/1HQhQh3DPPxlQ=="],
   }

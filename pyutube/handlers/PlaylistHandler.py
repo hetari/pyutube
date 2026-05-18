@@ -4,8 +4,8 @@ import sys
 from concurrent.futures import ThreadPoolExecutor
 from typing import Optional
 
-from pyutube.services.YtDlpService import YtDlpService
 from pyutube.services.models import PlaylistDownloadPlan
+from pyutube.services.YtDlpService import YtDlpService
 from pyutube.utils import (
     ask_for_make_playlist_in_order,
     ask_playlist_video_names,
