@@ -1,29 +1,23 @@
-# Code Health
+# Quality
 
-Use these checks to judge whether the repository is healthy:
-
-## Baseline
+Use these checks before opening a pull request:
 
 ```bash
 python -m compileall pyutube
-```
-
-## Static Checks
-
-```bash
 ruff check pyutube
 mypy pyutube
 ```
 
-## What Good Looks Like
+## Manual Checks
 
-- No import cycles.
+- `pyutube "<youtube-url>"` downloads a video.
+- `pyutube "<youtube-url>" -a` downloads audio.
+- `pyutube "<playlist-url>"` handles playlists.
+- `ffmpeg` is available on `PATH`.
+- Imports do not create circular dependencies.
+
+## What We Expect
+
+- Small, focused modules.
+- Clear names for functions and files.
 - No syntax errors or packaging mismatches.
-- Named dataclasses are used instead of unpacked tuples for flow state.
-- Each module has one clear responsibility.
-- Code is clean, documented, and easy to read.
-
-## Repo-Specific Checks
-
-- CLI run locally works correctly for downloading single video, short, and playlists.
-- Package imports do not trigger circular imports.
