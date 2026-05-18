@@ -42,7 +42,11 @@ class YtDlpService:
         options = self._parsed_options(self.ytdlp_args)
         return self._apply_pyutube_defaults(options)
 
-    def extract_info(self, noplaylist: bool = True) -> Dict[str, Any]:
+    def extract_info(
+        self,
+        noplaylist: bool = True,
+        extract_flat: bool = False,
+    ) -> Dict[str, Any]:
         """Return yt-dlp metadata for the configured URL."""
         options = self._base_options()
         options.update(
@@ -51,6 +55,8 @@ class YtDlpService:
                 "noplaylist": noplaylist,
             }
         )
+        if extract_flat:
+            options["extract_flat"] = "in_playlist"
 
         with YoutubeDL(options) as ydl:
             return ydl.extract_info(self.url, download=False)

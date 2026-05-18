@@ -58,6 +58,7 @@ Short version:
 - `-a` downloads audio only.
 - `--mp3` converts audio output to MP3.
 - `-f` downloads video only.
+- Playlist URLs first show a selection menu so you can choose specific items or download all.
 - Anything after `--` is forwarded to `yt-dlp`.
 
 Check the CLI help:

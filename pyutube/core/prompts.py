@@ -82,6 +82,14 @@ class PromptService:
         )
         return self._prompt_choice(question)
 
+    def ask_playlist_download_mode(self) -> Optional[str]:
+        question = inquirer.List(
+            "playlist_download_mode",
+            message="Do you want to download all playlist videos or choose specific items?",
+            choices=["Choose items", "Download all", self.cancel_prefix],
+        )
+        return self._prompt_choice(question)
+
     def ask_for_make_playlist_in_order(self) -> Optional[bool]:
         question = inquirer.Confirm(
             "ask_for_make_playlist_in_order",

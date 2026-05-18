@@ -60,6 +60,10 @@ def ask_playlist_video_names(videos):
     return _prompt_service.ask_playlist_video_names(videos)
 
 
+def ask_playlist_download_mode():
+    return _prompt_service.ask_playlist_download_mode()
+
+
 def ask_for_make_playlist_in_order():
     return _prompt_service.ask_for_make_playlist_in_order()
 

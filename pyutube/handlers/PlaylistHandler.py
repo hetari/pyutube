@@ -8,6 +8,7 @@ from pyutube.services.models import PlaylistDownloadPlan
 from pyutube.services.YtDlpService import YtDlpService
 from pyutube.utils import (
     ask_for_make_playlist_in_order,
+    ask_playlist_download_mode,
     ask_playlist_video_names,
     asking_video_or_audio,
     console,
@@ -26,14 +27,10 @@ class PlaylistHandler:
         """Collect playlist metadata and ask the user what to download."""
         console.print("Processing playlist...")
 
-        is_audio = asking_video_or_audio()
-        if is_audio is None:
-            console.print("Cancelled")
-            return None
-
-        console.print("Downloading playlist...")
+        console.print("Loading playlist items...", style="info")
         playlist = YtDlpService(self.url, "", self.ytdlp_args).extract_info(
-            noplaylist=False
+            noplaylist=False,
+            extract_flat=True,
         )
         playlist_title = safe_filename(playlist.get("title") or "playlist")
         playlist_videos = playlist.get("entries") or []
@@ -61,9 +58,21 @@ class PlaylistHandler:
         console.print("Checking if the videos are already downloaded...")
         new_path = self.check_for_downloaded_videos(playlist_title, playlist_total)
 
-        console.print("Choose which videos you want to download", style="info")
-        videos_selected = ask_playlist_video_names(self.playlist_videos)
-        if videos_selected is None:
+        download_mode = ask_playlist_download_mode()
+        if download_mode is None:
+            console.print("Cancelled")
+            return None
+        if download_mode == "Download all":
+            videos_selected = [video_id for _title, video_id in self.playlist_videos]
+        else:
+            console.print("Choose which videos you want to download", style="info")
+            videos_selected = ask_playlist_video_names(self.playlist_videos)
+            if videos_selected is None:
+                console.print("Cancelled")
+                return None
+
+        is_audio = asking_video_or_audio()
+        if is_audio is None:
             console.print("Cancelled")
             return None
 
