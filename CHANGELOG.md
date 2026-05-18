@@ -1,3 +1,14 @@
+### 1.6.0 (2026-05-18)
+
+##### Chores
+
+*  remove a lot of files (bd11bf71)
+
+##### Refactors
+
+*  remove audio-specific services, replace package.json release scripts with publish.sh, and clean up dependencies (5c134e8e)
+*  migrate from pytubefix to yt-dlp to support video/audio merging and improved download stability. (8cfa0415)
+
 #### 1.5.22 (2026-05-05)
 
 ##### Chores
