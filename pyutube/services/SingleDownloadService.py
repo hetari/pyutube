@@ -23,6 +23,7 @@ class SingleDownloadService:
         is_audio: bool = False,
         audio_format: str = "wav",
         make_playlist_in_order: bool = False,
+        ytdlp_args: Optional[list[str]] = None,
         video_service: Optional[Any] = None,
         file_service: Optional[Any] = None,
         conflict_resolver: Optional[Any] = None,
@@ -34,20 +35,26 @@ class SingleDownloadService:
         self.is_audio = is_audio
         self.audio_format = audio_format
         self.make_playlist_in_order = make_playlist_in_order
+        self.ytdlp_args = list(ytdlp_args or [])
         self.file_service = file_service or FileService()
         self.conflict_resolver = conflict_resolver or FileConflictResolver(
             self.file_service
         )
         self.video_service = video_service or VideoService(
-            self.url, self.quality, self.path
+            self.url, self.quality, self.path, self.ytdlp_args
         )
-        self.backend = YtDlpService(self.url, self.path)
+        self.backend = YtDlpService(self.url, self.path, self.ytdlp_args)
         self.audio_converter = audio_converter
 
     def refresh_video_service(self) -> None:
         """Rebuild the video service when the target URL or path changes."""
-        self.video_service = VideoService(self.url, self.quality, self.path)
-        self.backend = YtDlpService(self.url, self.path)
+        self.video_service = VideoService(
+            self.url,
+            self.quality,
+            self.path,
+            self.ytdlp_args,
+        )
+        self.backend = YtDlpService(self.url, self.path, self.ytdlp_args)
 
     def prepare_download(self) -> DownloadPreparation:
         """Resolve the current video metadata and its downloadable formats."""

@@ -3,48 +3,85 @@
 import os
 from typing import Any, Dict, List, Optional
 
-from yt_dlp import YoutubeDL
+from yt_dlp import YoutubeDL, parse_options
 
 
 class YtDlpService:
     """Thin wrapper around yt-dlp extraction and download calls."""
 
-    def __init__(self, url: str, path: str) -> None:
+    def __init__(
+        self,
+        url: str,
+        path: str,
+        ytdlp_args: Optional[List[str]] = None,
+    ) -> None:
         self.url = url
         self.path = path
+        self.ytdlp_args = list(ytdlp_args or [])
+
+    @staticmethod
+    def _parsed_options(ytdlp_args: Optional[List[str]]) -> Dict[str, Any]:
+        if not ytdlp_args:
+            return {}
+
+        parsed = parse_options(ytdlp_args)
+        return dict(parsed.ydl_opts)
+
+    @staticmethod
+    def _apply_pyutube_defaults(options: Dict[str, Any]) -> Dict[str, Any]:
+        if options.get("verbose"):
+            options["quiet"] = False
+            options["no_warnings"] = False
+        else:
+            options["quiet"] = True
+            options["no_warnings"] = True
+
+        return options
+
+    def _base_options(self) -> Dict[str, Any]:
+        options = self._parsed_options(self.ytdlp_args)
+        return self._apply_pyutube_defaults(options)
 
     def extract_info(self, noplaylist: bool = True) -> Dict[str, Any]:
         """Return yt-dlp metadata for the configured URL."""
-        options = {
-            "quiet": True,
-            "no_warnings": True,
-            "skip_download": True,
-            "noplaylist": noplaylist,
-        }
+        options = self._base_options()
+        options.update(
+            {
+                "skip_download": True,
+                "noplaylist": noplaylist,
+            }
+        )
 
         with YoutubeDL(options) as ydl:
             return ydl.extract_info(self.url, download=False)
 
-    @staticmethod
     def _download_options(
+        self,
         output_stem: str,
         *,
         format_selector: str,
         merge_output_format: Optional[str] = None,
         postprocessors: Optional[List[Dict[str, Any]]] = None,
+        extra_options: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
-        options: Dict[str, Any] = {
-            "quiet": True,
-            "no_warnings": True,
-            "noplaylist": True,
-            "outtmpl": {"default": output_stem + ".%(ext)s"},
-            "format": format_selector,
-        }
+        options = self._base_options()
+        options.update(
+            {
+                "noplaylist": True,
+                "outtmpl": {"default": output_stem + ".%(ext)s"},
+            }
+        )
 
-        if merge_output_format:
+        if extra_options:
+            options.update(extra_options)
+
+        if "format" not in options or not options["format"]:
+            options["format"] = format_selector
+
+        if merge_output_format and not options.get("merge_output_format"):
             options["merge_output_format"] = merge_output_format
 
-        if postprocessors:
+        if postprocessors and not options.get("postprocessors"):
             options["postprocessors"] = postprocessors
 
         return options

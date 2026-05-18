@@ -1,5 +1,7 @@
 """High-level download coordinator for single videos and playlists."""
 
+from typing import Optional
+
 from pyutube.services.models import DownloadPreparation
 from pyutube.services.PlaylistDownloadService import PlaylistDownloadService
 from pyutube.services.SingleDownloadService import SingleDownloadService
@@ -17,6 +19,7 @@ class DownloadService:
         is_audio: bool = False,
         audio_format: str = "wav",
         make_playlist_in_order: bool = False,
+        ytdlp_args: Optional[list[str]] = None,
     ):
         self.url = url
         self.path = path
@@ -24,6 +27,7 @@ class DownloadService:
         self.is_audio = is_audio
         self.audio_format = audio_format
         self.make_playlist_in_order = make_playlist_in_order
+        self.ytdlp_args = list(ytdlp_args or [])
 
         self.single_download_service = SingleDownloadService(
             url=self.url,
@@ -32,9 +36,11 @@ class DownloadService:
             is_audio=self.is_audio,
             audio_format=self.audio_format,
             make_playlist_in_order=self.make_playlist_in_order,
+            ytdlp_args=self.ytdlp_args,
         )
         self.playlist_download_service = PlaylistDownloadService(
-            self._build_single_download_service
+            self._build_single_download_service,
+            self.ytdlp_args,
         )
 
         self._sync_services()
@@ -49,6 +55,7 @@ class DownloadService:
         self.single_download_service.make_playlist_in_order = (
             self.make_playlist_in_order
         )
+        self.single_download_service.ytdlp_args = list(self.ytdlp_args)
         self.single_download_service.refresh_video_service()
         self.video_service = self.single_download_service.video_service
         self.file_service = self.single_download_service.file_service
@@ -70,6 +77,7 @@ class DownloadService:
             is_audio=is_audio,
             audio_format=audio_format,
             make_playlist_in_order=make_playlist_in_order,
+            ytdlp_args=self.ytdlp_args,
             file_service=self.file_service,
             conflict_resolver=self.single_download_service.conflict_resolver,
         )

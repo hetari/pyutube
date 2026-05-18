@@ -9,6 +9,7 @@ offering users flexibility and convenience in managing their media downloads.
 
 Usage:
     $ pyutube <URL> [options]
+    $ pyutube <URL> [options] -- <yt-dlp options>
 
 Options:
     -a, --audio          Download only audio.
@@ -36,6 +37,12 @@ Example:
     $ pyutube <YouTube_short_URL>
         Download the specified YouTube short video.
 
+    $ pyutube <YouTube_URL> -- --ignore-errors --write-info-json
+        Forward extra yt-dlp options directly to yt-dlp.
+
+        Pyutube still manages the URL, save path, and interactive format
+        selection, so output-related flags may be overridden by the app.
+
 Made with ❤️ By Ebraheem. Find me on GitHub: @Hetari. The project lives on @Hetari/pyutube.
 
 Thank you for using Pyutube! Your support is greatly appreciated. ⭐️
@@ -62,6 +69,10 @@ app = typer.Typer(
     add_completion=False,
     help="Download YouTube videos, audio, shorts, and playlists from the terminal.",
     rich_markup_mode="rich",
+    context_settings={
+        "allow_extra_args": True,
+        "ignore_unknown_options": True,
+    },
 )
 
 
@@ -85,6 +96,7 @@ version_option = typer.Option(False, "-v", "--version", help="Show the version n
     ),
 )
 def pyutube(
+    ctx: typer.Context,
     url: str = url_arg,
     path: str = path_arg,
     audio: bool = audio_option,
@@ -114,7 +126,14 @@ def pyutube(
         sys.exit()
 
     audio_format = "mp3" if mp3 else "wav"
-    download_service = DownloadService(url, path, "", audio_format=audio_format)
+    yt_dlp_args = list(ctx.args)
+    download_service = DownloadService(
+        url,
+        path,
+        "",
+        audio_format=audio_format,
+        ytdlp_args=yt_dlp_args,
+    )
     if audio:
         download_service.is_audio = True
         preparation = download_service.download_preparing()

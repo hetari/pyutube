@@ -14,11 +14,13 @@ class PlaylistDownloadService:
         single_download_factory: Optional[
             Callable[[str, str, str, bool, str, bool], Any]
         ] = None,
+        ytdlp_args: Optional[list[str]] = None,
     ) -> None:
         self.single_download_factory = single_download_factory or self._default_factory
+        self.ytdlp_args = list(ytdlp_args or [])
 
-    @staticmethod
     def _default_factory(
+        self,
         url: str,
         path: str,
         quality: str,
@@ -33,10 +35,11 @@ class PlaylistDownloadService:
             is_audio=is_audio,
             audio_format=audio_format,
             make_playlist_in_order=make_playlist_in_order,
+            ytdlp_args=self.ytdlp_args,
         )
 
     def download_playlist(self, url: str, path: str, quality: str, audio_format: str) -> None:
-        handler = PlaylistHandler(url, path)
+        handler = PlaylistHandler(url, path, self.ytdlp_args)
         plan = handler.process_playlist()
         if plan is None:
             return

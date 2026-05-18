@@ -16,10 +16,11 @@ from pyutube.utils import (
 
 
 class PlaylistHandler:
-    def __init__(self, url: str, path: str):
+    def __init__(self, url: str, path: str, ytdlp_args: Optional[list[str]] = None):
         self.url = url
         self.path = path
         self.playlist_videos: list = []
+        self.ytdlp_args = list(ytdlp_args or [])
 
     def process_playlist(self) -> Optional[PlaylistDownloadPlan]:
         """Collect playlist metadata and ask the user what to download."""
@@ -31,7 +32,9 @@ class PlaylistHandler:
             return None
 
         console.print("Downloading playlist...")
-        playlist = YtDlpService(self.url, "").extract_info(noplaylist=False)
+        playlist = YtDlpService(self.url, "", self.ytdlp_args).extract_info(
+            noplaylist=False
+        )
         playlist_title = safe_filename(playlist.get("title") or "playlist")
         playlist_videos = playlist.get("entries") or []
         playlist_total = playlist.get("playlist_count") or len(playlist_videos)
