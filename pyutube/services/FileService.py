@@ -14,7 +14,6 @@ class FileService:
         media: Any,
         is_audio: bool = False,
         filename: str = "",
-        audio_format: str = "wav",
         title: str = "",
     ):
         """Build a filename from the stream metadata."""
@@ -22,7 +21,7 @@ class FileService:
         title = safe_filename(title)
 
         if is_audio:
-            return f"{title}_audio.{audio_format}"
+            return f"{title}_audio.mp3"
 
         resolution = self._media_resolution(media)
         return f"{title}_{resolution}.mp4"

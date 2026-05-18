@@ -21,7 +21,6 @@ class SingleDownloadService:
         path: str,
         quality: str,
         is_audio: bool = False,
-        audio_format: str = "wav",
         make_playlist_in_order: bool = False,
         ytdlp_args: Optional[list[str]] = None,
         video_service: Optional[Any] = None,
@@ -33,7 +32,7 @@ class SingleDownloadService:
         self.path = path
         self.quality = quality
         self.is_audio = is_audio
-        self.audio_format = audio_format
+        self.audio_format = "mp3"
         self.make_playlist_in_order = make_playlist_in_order
         self.ytdlp_args = list(ytdlp_args or [])
         self.file_service = file_service or FileService()
@@ -99,7 +98,6 @@ class SingleDownloadService:
         audio_filename = self.file_service.generate_filename(
             video_audio,
             is_audio=True,
-            audio_format=self.audio_format,
             title=video_title or "",
         )
 

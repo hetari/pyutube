@@ -13,15 +13,11 @@ Usage:
 
 Options:
     -a, --audio          Download only audio.
-    --mp3                Convert audio downloads to MP3.
     -f, --footage        Download only video (footage).
     -v, --version        Show the version number.
 
 Example:
     $ pyutube <YouTube_URL> -a
-        Download the audio of the specified YouTube video as WAV.
-
-    $ pyutube <YouTube_URL> -a --mp3
         Download the audio of the specified YouTube video as MP3.
 
     $ pyutube <YouTube_URL> -f
@@ -81,7 +77,6 @@ path_arg = typer.Argument(
     os.getcwd(), help="Path to save video [cyan]default: <current directory>[/cyan]", show_default=False
 )
 audio_option = typer.Option(False, "-a", "--audio", help="Download only audio")
-mp3_option = typer.Option(False, "--mp3", help="Convert audio downloads to MP3")
 video_option = typer.Option(False, "-f", "--footage", help="Download only video")
 version_option = typer.Option(False, "-v", "--version", help="Show the version number")
 
@@ -100,7 +95,6 @@ def pyutube(
     url: str = url_arg,
     path: str = path_arg,
     audio: bool = audio_option,
-    mp3: bool = mp3_option,
     video: bool = video_option,
     version: bool = version_option,
 ) -> None:
@@ -125,13 +119,11 @@ def pyutube(
     if not is_valid_link:
         sys.exit()
 
-    audio_format = "mp3" if mp3 else "wav"
     yt_dlp_args = list(ctx.args)
     download_service = DownloadService(
         url,
         path,
         "",
-        audio_format=audio_format,
         ytdlp_args=yt_dlp_args,
     )
     if audio:

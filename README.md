@@ -45,7 +45,6 @@ pip install -e ".[dev]"
 pyutube "<youtube-url>"
 pyutube "<youtube-url>" "/path/to/save"
 pyutube "<youtube-url>" -a
-pyutube "<youtube-url>" -a --mp3
 pyutube "<youtube-url>" -f
 pyutube "<playlist-url>"
 pyutube "<youtube-url>" -- --ignore-errors --write-info-json
@@ -55,8 +54,7 @@ Short version:
 
 - `URL` is required.
 - `PATH` is optional and defaults to the current directory.
-- `-a` downloads audio only.
-- `--mp3` converts audio output to MP3.
+- `-a` downloads audio only (as MP3).
 - `-f` downloads video only.
 - Playlist URLs first show a selection menu so you can choose specific items or download all.
 - Anything after `--` is forwarded to `yt-dlp`.

@@ -12,7 +12,6 @@ pyutube "https://www.youtube.com/watch?v=dQw4w9WgXcQ" -f
 
 ```bash
 pyutube "https://www.youtube.com/watch?v=dQw4w9WgXcQ" -a
-pyutube "https://www.youtube.com/watch?v=dQw4w9WgXcQ" -a --mp3
 ```
 
 ## Playlist

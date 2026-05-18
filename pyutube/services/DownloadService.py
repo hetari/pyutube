@@ -17,7 +17,6 @@ class DownloadService:
         path: str,
         quality: str,
         is_audio: bool = False,
-        audio_format: str = "wav",
         make_playlist_in_order: bool = False,
         ytdlp_args: Optional[list[str]] = None,
     ):
@@ -25,7 +24,7 @@ class DownloadService:
         self.path = path
         self.quality = quality
         self.is_audio = is_audio
-        self.audio_format = audio_format
+        self.audio_format = "mp3"
         self.make_playlist_in_order = make_playlist_in_order
         self.ytdlp_args = list(ytdlp_args or [])
 
@@ -34,7 +33,6 @@ class DownloadService:
             path=self.path,
             quality=self.quality,
             is_audio=self.is_audio,
-            audio_format=self.audio_format,
             make_playlist_in_order=self.make_playlist_in_order,
             ytdlp_args=self.ytdlp_args,
         )
@@ -51,7 +49,6 @@ class DownloadService:
         self.single_download_service.path = self.path
         self.single_download_service.quality = self.quality
         self.single_download_service.is_audio = self.is_audio
-        self.single_download_service.audio_format = self.audio_format
         self.single_download_service.make_playlist_in_order = (
             self.make_playlist_in_order
         )
@@ -66,7 +63,6 @@ class DownloadService:
         path: str,
         quality: str,
         is_audio: bool,
-        audio_format: str,
         make_playlist_in_order: bool,
     ) -> SingleDownloadService:
         """Create a worker that reuses shared file-conflict and file helpers."""
@@ -75,7 +71,6 @@ class DownloadService:
             path=path,
             quality=quality,
             is_audio=is_audio,
-            audio_format=audio_format,
             make_playlist_in_order=make_playlist_in_order,
             ytdlp_args=self.ytdlp_args,
             file_service=self.file_service,
@@ -126,7 +121,6 @@ class DownloadService:
             self.url,
             self.path,
             self.quality,
-            self.audio_format,
         )
 
     def download_preparing(self) -> DownloadPreparation:

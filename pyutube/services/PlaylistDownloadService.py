@@ -12,7 +12,7 @@ class PlaylistDownloadService:
     def __init__(
         self,
         single_download_factory: Optional[
-            Callable[[str, str, str, bool, str, bool], Any]
+            Callable[[str, str, str, bool, bool], Any]
         ] = None,
         ytdlp_args: Optional[list[str]] = None,
     ) -> None:
@@ -25,7 +25,6 @@ class PlaylistDownloadService:
         path: str,
         quality: str,
         is_audio: bool,
-        audio_format: str,
         make_playlist_in_order: bool,
     ):
         return SingleDownloadService(
@@ -33,12 +32,11 @@ class PlaylistDownloadService:
             path=path,
             quality=quality,
             is_audio=is_audio,
-            audio_format=audio_format,
             make_playlist_in_order=make_playlist_in_order,
             ytdlp_args=self.ytdlp_args,
         )
 
-    def download_playlist(self, url: str, path: str, quality: str, audio_format: str) -> None:
+    def download_playlist(self, url: str, path: str, quality: str) -> None:
         handler = PlaylistHandler(url, path, self.ytdlp_args)
         plan = handler.process_playlist()
         if plan is None:
@@ -63,7 +61,6 @@ class PlaylistDownloadService:
                 new_path,
                 quality,
                 is_audio,
-                audio_format,
                 make_in_order,
             )
 
