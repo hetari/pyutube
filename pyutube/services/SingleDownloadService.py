@@ -4,13 +4,11 @@ import os
 import sys
 from typing import Any, Optional
 
-from pytubefix.helpers import safe_filename
-
-from pyutube.services.AudioConversionService import AudioConversionService
 from pyutube.services.FileConflictResolver import FileConflictResolver
 from pyutube.services.FileService import FileService
-from pyutube.services.models import DownloadPreparation
 from pyutube.services.VideoService import VideoService
+from pyutube.services.YtDlpService import YtDlpService
+from pyutube.services.models import DownloadPreparation
 from pyutube.ui import console, error_console
 
 
@@ -40,20 +38,27 @@ class SingleDownloadService:
         self.conflict_resolver = conflict_resolver or FileConflictResolver(
             self.file_service
         )
-        self.audio_converter = audio_converter or AudioConversionService()
-        self.video_service = video_service or VideoService(self.url, self.quality, self.path)
+        self.video_service = video_service or VideoService(
+            self.url, self.quality, self.path
+        )
+        self.backend = YtDlpService(self.url, self.path)
+        self.audio_converter = audio_converter
 
     def refresh_video_service(self) -> None:
         """Rebuild the video service when the target URL or path changes."""
         self.video_service = VideoService(self.url, self.quality, self.path)
+        self.backend = YtDlpService(self.url, self.path)
 
     def prepare_download(self) -> DownloadPreparation:
-        """Resolve the current YouTube object and its downloadable streams."""
+        """Resolve the current video metadata and its downloadable formats."""
         preparation = self.video_service.get_selected_stream(
             self.video_service.search_process(),
             self.is_audio,
         )
-        console.print(f"Title: {preparation.video.title}\n", style="info")
+        console.print(
+            f"Title: {preparation.video.get('title', 'Unknown')}\n",
+            style="info",
+        )
         self.quality = preparation.quality
         return preparation
 
@@ -74,7 +79,7 @@ class SingleDownloadService:
             error_console.print("Something went wrong while downloading the video.")
             sys.exit()
 
-        return self.download_video(video, video_file, video_audio, title_number)
+        return self.download_video(video, video_file, title_number)
 
     def download_audio(
         self,
@@ -83,10 +88,12 @@ class SingleDownloadService:
         title_number: int = 0,
     ) -> str:
         """Download the audio stream for a video."""
+        video_title = video.get("title") or video.get("fulltitle") or video.get("id")
         audio_filename = self.file_service.generate_filename(
             video_audio,
             is_audio=True,
             audio_format=self.audio_format,
+            title=video_title or "",
         )
 
         if self.make_playlist_in_order:
@@ -106,16 +113,9 @@ class SingleDownloadService:
 
         audio_filename = resolved_audio_filename
 
-        temp_audio_filename = self._temp_audio_filename(audio_filename, video_audio)
-        temp_audio_path = os.path.join(self.path, temp_audio_filename)
-        audio_path = os.path.join(self.path, audio_filename)
-
         try:
-            if self.is_audio:
-                console.print("⏳ Downloading the audio...", style="info")
-
-            self.file_service.save_file(video_audio, temp_audio_filename, self.path)
-            self.audio_converter.convert_audio(temp_audio_path, audio_path)
+            console.print("⏳ Downloading the audio...", style="info")
+            self.backend.download_audio(audio_filename, self.audio_format)
         except Exception as error:
             error_console.print(
                 f"❗ Error (please report this in github issue: https://github.com/Hetari/pyutube/issues):\n {error}"
@@ -127,43 +127,18 @@ class SingleDownloadService:
 
         return audio_filename
 
-    @staticmethod
-    def _temp_audio_filename(audio_filename: str, video_audio: Any) -> str:
-        """Build a temporary filename that preserves the original audio container."""
-        base_name, _ = os.path.splitext(audio_filename)
-        extension = SingleDownloadService._audio_container_extension(video_audio)
-
-        return f"{base_name}{extension}"
-
-    @staticmethod
-    def _audio_container_extension(video_audio: Any) -> str:
-        """Map the downloaded audio stream to a suitable temporary container."""
-        mime_type = getattr(video_audio, "mime_type", "") or ""
-        mime_type = mime_type.split(";")[0]
-
-        if mime_type == "audio/mp4":
-            return ".m4a"
-
-        if mime_type.startswith("audio/"):
-            container = mime_type.split("/", 1)[1]
-            return ".m4a" if container == "mp4" else f".{container}"
-
-        default_filename = getattr(video_audio, "default_filename", "")
-        extension = os.path.splitext(default_filename)[1]
-        if extension == ".mp4" and getattr(video_audio, "resolution", "") == "audio":
-            return ".m4a"
-
-        return extension or ".tmp"
-
     def download_video(
         self,
         video: Any,
         video_stream: Any,
-        video_audio: Any,
         title_number: int = 0,
     ):
-        """Download and merge the video and audio streams."""
-        video_filename = self.file_service.generate_filename(video_stream)
+        """Download the selected video format and let yt-dlp merge audio."""
+        video_title = video.get("title") or video.get("fulltitle") or video.get("id")
+        video_filename = self.file_service.generate_filename(
+            video_stream,
+            title=video_title or "",
+        )
 
         if self.make_playlist_in_order:
             video_base_name, video_extension = os.path.splitext(video_filename)
@@ -175,28 +150,16 @@ class SingleDownloadService:
             self.path,
             self.is_audio,
         )
-        skip_video_download = resolved_video_filename is None
-        if not skip_video_download:
-            video_filename = resolved_video_filename
+        if resolved_video_filename is None:
+            console.print("Using existing video file", style="info")
+            console.print("\n\n✅ Download completed", style="success")
+            return self.quality
+
+        video_filename = resolved_video_filename
 
         try:
             console.print("⏳ Downloading the video...", style="info")
-            if not skip_video_download:
-                self.file_service.save_file(video_stream, video_filename, self.path)
-            else:
-                console.print("Using existing video file", style="info")
-            audio_filename = self.download_audio(
-                video,
-                video_audio,
-                title_number,
-            )
-
-            video_base_name, video_extension = os.path.splitext(video_filename)
-            audio_base_name, audio_extension = os.path.splitext(audio_filename)
-            video_safe_filename = f"{safe_filename(video_base_name)}{video_extension}"
-            audio_safe_filename = f"{safe_filename(audio_base_name)}{audio_extension}"
-
-            self.video_service.merging(video_safe_filename, audio_safe_filename)
+            self.backend.download_video(video_filename, video_stream["format_id"])
         except Exception as error:
             error_console.print(
                 f"❗ Error (please report this in github issue: https://github.com/Hetari/pyutube/issues):\n {error}"

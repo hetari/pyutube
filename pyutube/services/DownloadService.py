@@ -95,14 +95,12 @@ class DownloadService:
         self,
         video,
         video_stream,
-        video_audio,
         title_number: int = 0,
     ):
         self._sync_services()
         return self.single_download_service.download_video(
             video,
             video_stream,
-            video_audio,
             title_number,
         )
 

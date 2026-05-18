@@ -4,15 +4,14 @@ import sys
 from concurrent.futures import ThreadPoolExecutor
 from typing import Optional
 
-from pytubefix import Playlist
-from pytubefix.helpers import safe_filename
-
+from pyutube.services.YtDlpService import YtDlpService
 from pyutube.services.models import PlaylistDownloadPlan
 from pyutube.utils import (
     ask_for_make_playlist_in_order,
     ask_playlist_video_names,
     asking_video_or_audio,
     console,
+    safe_filename,
 )
 
 
@@ -32,11 +31,10 @@ class PlaylistHandler:
             return None
 
         console.print("Downloading playlist...")
-        playlist = Playlist(self.url)
-
-        playlist_title = playlist.title
-        playlist_total = playlist.length
-        playlist_videos = playlist.videos
+        playlist = YtDlpService(self.url, "").extract_info(noplaylist=False)
+        playlist_title = safe_filename(playlist.get("title") or "playlist")
+        playlist_videos = playlist.get("entries") or []
+        playlist_total = playlist.get("playlist_count") or len(playlist_videos)
 
         make_in_order = ask_for_make_playlist_in_order()
         if make_in_order is None:
@@ -77,11 +75,19 @@ class PlaylistHandler:
     def get_all_playlist_videos_title(self, videos):
         """Fetch playlist titles while preserving their original order."""
         with ThreadPoolExecutor() as executor:
-            self.playlist_videos = list(executor.map(self._extract_video_data, videos))
+            self.playlist_videos = [
+                item for item in executor.map(self._extract_video_data, videos) if item[1]
+            ]
 
     @staticmethod
     def _extract_video_data(video):
-        return safe_filename(video.title), video.video_id
+        if video is None:
+            return "download", ""
+
+        return (
+            safe_filename(video.get("title") or video.get("id") or "download"),
+            video.get("id") or "",
+        )
 
     @staticmethod
     def show_playlist_info(title, total):
@@ -118,4 +124,7 @@ class PlaylistHandler:
     @staticmethod
     def _clean_downloaded_title(file_name):
         base_name = os.path.splitext(file_name)[0]
-        return re.compile(r"(_\d{3,4}p|_\d+k|_(hd|uhd|sd))$").sub("", base_name)
+        return re.compile(r"(_audio|_\d{3,4}p|_\d+k|_(hd|uhd|sd))$").sub(
+            "",
+            base_name,
+        )

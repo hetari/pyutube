@@ -129,7 +129,6 @@ def pyutube(
         download_service.download_video(
             preparation.video,
             video_file,
-            preparation.video_audio,
         )
 
     elif link_type == "video":

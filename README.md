@@ -22,11 +22,14 @@
 <br />
 
 > [!NOTE]
-> Pyutube is built on top of `pytubefix`. If downloads stop working, update it first:
+> Pyutube is built on top of `yt-dlp`. If downloads stop working, update it first:
 >
 > ```bash
-> pip install --upgrade pytubefix
+> pip install --upgrade yt-dlp
 > ```
+
+> [!IMPORTANT]
+> `ffmpeg` must be available on your `PATH` for video merging and audio conversion.
 
 <a href="https://ibb.co/27wcFYN">
    <img src="https://i.ibb.co/MDbPg56/Screenshot-from-2024-04-08-21-38-02-transformed.png" alt="Pyutube" style="width: 100%;">
@@ -37,7 +40,7 @@
 
 ## Why Pyutube?
 
-Pyutube is a small CLI wrapper around `pytubefix`. It supports videos, shorts, audio-only downloads, and playlists with a simple prompt-driven flow. Audio downloads are saved as WAV by default, with an optional MP3 conversion flag.
+Pyutube is a small CLI wrapper around `yt-dlp`. It supports videos, shorts, audio-only downloads, and playlists with a simple prompt-driven flow. Video downloads are merged with the best available audio track, and audio downloads are transcoded to WAV by default with an optional MP3 conversion flag.
 
 ## 🛠️ Installation
 

@@ -43,7 +43,7 @@ If you're new to open-source contribution, don't worry! Here's how you can get s
 
 #### Yo Want to Contribute but Don't Know Where to Begin?
 
-1. See the [Pytubefix docs](https://pytubefix.readthedocs.io/en/latest/)
+1. See the [yt-dlp project](https://github.com/yt-dlp/yt-dlp)
 
 If you are a bigger contributor, feel free to start with:
 

@@ -1,7 +1,6 @@
 """Compatibility façade for the split video services."""
 
 from pyutube.services.StreamSelectionService import StreamSelectionService
-from pyutube.services.VideoMergeService import VideoMergeService
 from pyutube.services.VideoSearchService import VideoSearchService
 
 
@@ -14,12 +13,10 @@ class VideoService:
         self.path = path
         self.search_service = VideoSearchService(url)
         self.stream_selection_service = StreamSelectionService(quality)
-        self.merge_service = VideoMergeService(path)
 
     def _sync(self) -> None:
         self.search_service.url = self.url
         self.stream_selection_service.quality = self.quality
-        self.merge_service.path = self.path
 
     def search_process(self):
         self._sync()
@@ -41,7 +38,3 @@ class VideoService:
         )
         self.quality = self.stream_selection_service.quality
         return preparation
-
-    def merging(self, video_name: str, audio_name: str):
-        self._sync()
-        return self.merge_service.merging(video_name, audio_name)

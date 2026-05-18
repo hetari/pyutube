@@ -20,7 +20,7 @@ pyutube "YOUTUBE_PLAYLIST_LINK" [the_download_path]
 ```
 
 1. Choose the download format: video or audio.
-2. If you select video, pick your desired resolution. For audio, it’ll download everything right away as WAV unless you add `--mp3`! 🔥
+2. If you select video, pick your desired resolution. For audio, it will download and convert everything right away as WAV unless you add `--mp3`! 🔥
 
 The tool will check all available resolutions from the first video in the playlist and download them in that resolution. 👍
 

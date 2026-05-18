@@ -37,8 +37,7 @@ setup(
         "download",
         "cli",
         "pyutube",
-        "pytubefix",
-        "pytube",
+        "yt-dlp",
         "youtube-dl",
     ],
 
@@ -55,14 +54,13 @@ setup(
     python_requires=">=3.6",
 
     install_requires=[
-        "pytubefix",
+        "yt-dlp==2026.03.17",
         "inquirer",
         "yaspin",
         "typer",
         "requests",
         "rich",
         "termcolor",
-        "moviepy",
         "setuptools",
         "imageio-ffmpeg",
     ],

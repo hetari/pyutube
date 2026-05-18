@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from importlib import import_module
 from typing import Dict, Optional
 
-from pytubefix import __version__ as pytubefix_version
+from yt_dlp.version import __version__ as yt_dlp_version
 
 from pyutube.ui import console, error_console
 from pyutube.version import __version__
@@ -29,7 +29,7 @@ class UpdateChecker:
     def __init__(self) -> None:
         self.packages: Dict[str, PackageVersion] = {
             "pyutube": PackageVersion("pyutube", __version__),
-            "pytubefix": PackageVersion("pytubefix", pytubefix_version),
+            "yt-dlp": PackageVersion("yt-dlp", yt_dlp_version),
         }
 
     @staticmethod
