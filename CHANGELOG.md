@@ -1,5 +1,19 @@
 #### 1.6.1 (2026-05-18)
 
+##### Chores
+
+*  bump version to 1.6.1 and update changelog with recent features and refactors (cdf08d41)
+
+##### New Features
+
+*  enable passing arbitrary yt-dlp options via CLI command separator (daccde1f)
+
+##### Refactors
+
+*  simplify and clean up project documentation files (cdfd6803)
+
+#### 1.6.1 (2026-05-18)
+
 ##### New Features
 
 *  enable passing arbitrary yt-dlp options via CLI command separator (daccde1f)
