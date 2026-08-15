@@ -10,6 +10,7 @@ from pyutube.services.models import DownloadPreparation
 from pyutube.services.VideoService import VideoService
 from pyutube.services.YtDlpService import YtDlpService
 from pyutube.ui import console, error_console
+from pyutube.utils import handle_error
 
 
 class SingleDownloadService:
@@ -122,10 +123,8 @@ class SingleDownloadService:
             console.print("⏳ Downloading the audio...", style="info")
             self.backend.download_audio(audio_filename, self.audio_format)
         except Exception as error:
-            error_console.print(
-                f"❗ Error (please report this in github issue: https://github.com/Hetari/pyutube/issues):\n {error}"
-            )
-            sys.exit()
+            handle_error(error, context="Downloading audio")
+            sys.exit(1)
 
         if self.is_audio:
             console.print("\n\n✅ Download completed", style="success")
@@ -166,10 +165,8 @@ class SingleDownloadService:
             console.print("⏳ Downloading the video...", style="info")
             self.backend.download_video(video_filename, video_stream["format_id"])
         except Exception as error:
-            error_console.print(
-                f"❗ Error (please report this in github issue: https://github.com/Hetari/pyutube/issues):\n {error}"
-            )
-            sys.exit()
+            handle_error(error, context="Downloading video")
+            sys.exit(1)
 
         console.print("\n\n✅ Download completed", style="success")
         return self.quality

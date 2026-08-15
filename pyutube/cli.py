@@ -58,6 +58,7 @@ from pyutube.utils import (
     clear,
     console,
     error_console,
+    handle_error,
 )
 
 app = typer.Typer(
@@ -113,43 +114,52 @@ def pyutube(
     if not check_internet_connection():
         sys.exit()
 
-    url_handler = URLHandler(url)
-    is_valid_link, link_type = url_handler.validate()
+    try:
+        url_handler = URLHandler(url)
+        is_valid_link, link_type = url_handler.validate()
 
-    if not is_valid_link:
-        sys.exit()
+        if not is_valid_link:
+            sys.exit()
 
-    yt_dlp_args = list(ctx.args)
-    download_service = DownloadService(
-        url,
-        path,
-        "",
-        ytdlp_args=yt_dlp_args,
-    )
-    if audio:
-        download_service.is_audio = True
-        preparation = download_service.download_preparing()
-        download_service.download_audio(preparation.video, preparation.video_audio)
-
-    elif video or link_type == "short":
-        preparation = download_service.download_preparing()
-        video_file = download_service.video_service.get_video_streams(
-            preparation.quality,
-            preparation.streams,
+        yt_dlp_args = list(ctx.args)
+        download_service = DownloadService(
+            url,
+            path,
+            "",
+            ytdlp_args=yt_dlp_args,
         )
-        download_service.download_video(
-            preparation.video,
-            video_file,
-        )
+        if audio:
+            download_service.is_audio = True
+            preparation = download_service.download_preparing()
+            download_service.download_audio(preparation.video, preparation.video_audio)
 
-    elif link_type == "video":
-        download_service.asking_video_or_audio()
+        elif video or link_type == "short":
+            preparation = download_service.download_preparing()
+            video_file = download_service.video_service.get_video_streams(
+                preparation.quality,
+                preparation.streams,
+            )
+            download_service.download_video(
+                preparation.video,
+                video_file,
+            )
 
-    elif link_type == "playlist":
-        download_service.get_playlist_links()
+        elif link_type == "video":
+            download_service.asking_video_or_audio()
 
-    else:
-        error_console.print("❗ Unsupported link type.")
-        sys.exit()
+        elif link_type == "playlist":
+            download_service.get_playlist_links()
+
+        else:
+            error_console.print("❗ Unsupported link type.")
+            sys.exit()
+    except SystemExit:
+        raise
+    except (KeyboardInterrupt, typer.Abort):
+        console.print("\nOperation cancelled.", style="yellow")
+        sys.exit(0)
+    except Exception as error:
+        handle_error(error, context="Executing pyutube CLI")
+        sys.exit(1)
 
     sys.exit()

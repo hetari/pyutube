@@ -6,6 +6,7 @@ from typing import Any, Optional
 import inquirer
 from termcolor import colored
 
+from pyutube.core.errors import handle_error
 from pyutube.ui import console
 
 
@@ -18,8 +19,10 @@ class PromptService:
     def _prompt_choice(question: Any) -> Optional[Any]:
         try:
             response = inquirer.prompt([question])
+        except (KeyboardInterrupt, TypeError):
+            return None
         except Exception as error:
-            console.print(f"Error: {error}")
+            handle_error(error, context="Interactive prompt")
             sys.exit(1)
 
         if not response:

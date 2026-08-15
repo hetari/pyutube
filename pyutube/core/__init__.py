@@ -1,5 +1,6 @@
 """Core helpers for pyutube."""
 
+from .errors import handle_error
 from .network import InternetChecker, check_internet_connection, is_internet_available
 from .prompts import PromptService
 from .update_checker import UpdateChecker
@@ -11,6 +12,7 @@ __all__ = [
     "UpdateChecker",
     "YouTubeURLParser",
     "check_internet_connection",
+    "handle_error",
     "is_internet_available",
     "is_youtube_link",
     "is_youtube_video",

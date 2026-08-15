@@ -7,6 +7,7 @@ imports used by the CLI, setup script, and tests continue to work.
 import os
 import re
 
+from pyutube.core.errors import handle_error
 from pyutube.core.network import InternetChecker
 from pyutube.core.prompts import PromptService
 from pyutube.core.update_checker import UpdateChecker
@@ -25,6 +26,7 @@ ABORTED_PREFIX = "Aborted"
 CANCEL_PREFIX = "Cancel"
 console = _console
 error_console = _error_console
+handle_error = handle_error
 __version__ = _version
 
 _prompt_service = PromptService()

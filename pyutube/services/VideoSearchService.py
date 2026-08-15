@@ -9,6 +9,7 @@ from yaspin.spinners import Spinners
 
 from pyutube.services.YtDlpService import YtDlpService
 from pyutube.ui import error_console
+from pyutube.utils import handle_error
 
 
 class VideoSearchService:
@@ -23,7 +24,7 @@ class VideoSearchService:
         try:
             video = self._video_search()
         except Exception as error:
-            error_console.print(f"Error: {error}")
+            handle_error(error, context="Searching video metadata")
             sys.exit(1)
 
         if not video:
