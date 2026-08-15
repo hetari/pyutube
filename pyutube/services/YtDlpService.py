@@ -5,6 +5,8 @@ from typing import Any, Dict, List, Optional
 
 from yt_dlp import YoutubeDL, parse_options
 
+from pyutube.utils import logger
+
 
 class YtDlpService:
     """Thin wrapper around yt-dlp extraction and download calls."""
@@ -58,6 +60,14 @@ class YtDlpService:
         if extract_flat:
             options["extract_flat"] = "in_playlist"
 
+        logger.log(
+            "YtDlpService.extract_info",
+            {
+                "url": self.url,
+                "noplaylist": noplaylist,
+                "extract_flat": extract_flat,
+            },
+        )
         with YoutubeDL(options) as ydl:
             return ydl.extract_info(self.url, download=False)
 
@@ -103,6 +113,15 @@ class YtDlpService:
             merge_output_format="mp4",
         )
 
+        logger.log(
+            "YtDlpService.download_video",
+            {
+                "url": self.url,
+                "output_path": output_path,
+                "format_id": format_id,
+                "path": self.path,
+            },
+        )
         with YoutubeDL(options) as ydl:
             ydl.download([self.url])
 
@@ -122,5 +141,14 @@ class YtDlpService:
             ],
         )
 
+        logger.log(
+            "YtDlpService.download_audio",
+            {
+                "url": self.url,
+                "output_path": output_path,
+                "audio_format": audio_format,
+                "path": self.path,
+            },
+        )
         with YoutubeDL(options) as ydl:
             ydl.download([self.url])

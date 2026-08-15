@@ -5,6 +5,7 @@ import sys
 import traceback
 from typing import Optional
 
+from pyutube.core.logger import logger
 from pyutube.ui import error_console
 from pyutube.version import __version__
 
@@ -47,9 +48,21 @@ def handle_error(error: Exception, context: Optional[str] = None) -> None:
     error_console.print(f"   • Exception Type:    [yellow]{exc_type}[/yellow]")
     error_console.print(f"   • Exception Message: [red]{exc_msg}[/red]")
 
+    trace_steps = logger.get_trace()
+    if trace_steps:
+        error_console.print("\n📌 [bold cyan]Execution Flow Log:[/bold cyan]")
+        for idx, step in enumerate(trace_steps, 1):
+            error_console.print(f"   {idx:2d}. {step}")
+
     if tb_str and tb_str.strip() and tb_str.strip() != "NoneType: None":
         error_console.print("\n📌 [bold cyan]Traceback:[/bold cyan]")
         error_console.print(f"[dim]{tb_str.strip()}[/dim]")
+
+    log_path = logger.save_log_file(
+        "pyutube_error.log",
+        error_info=f"Context: {context}\nType: {exc_type}\nMessage: {exc_msg}\n\nTraceback:\n{tb_str}",
+    )
+    error_console.print(f"\n📄 [bold cyan]Execution Log Saved To:[/bold cyan] {log_path}")
 
     error_console.print(
         "\n[bold yellow]Please report this in a GitHub issue:[/bold yellow] "

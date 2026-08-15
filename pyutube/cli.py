@@ -59,6 +59,7 @@ from pyutube.utils import (
     console,
     error_console,
     handle_error,
+    logger,
 )
 
 app = typer.Typer(
@@ -113,6 +114,17 @@ def pyutube(
 
     if not check_internet_connection():
         sys.exit()
+
+    logger.log(
+        "cli.pyutube",
+        {
+            "url": url,
+            "path": path,
+            "audio": audio,
+            "video": video,
+            "extra_args": list(ctx.args),
+        },
+    )
 
     try:
         url_handler = URLHandler(url)

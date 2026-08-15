@@ -8,6 +8,7 @@ import os
 import re
 
 from pyutube.core.errors import handle_error
+from pyutube.core.logger import FlowLogger, logger
 from pyutube.core.network import InternetChecker
 from pyutube.core.prompts import PromptService
 from pyutube.core.update_checker import UpdateChecker
@@ -27,6 +28,8 @@ CANCEL_PREFIX = "Cancel"
 console = _console
 error_console = _error_console
 handle_error = handle_error
+FlowLogger = FlowLogger
+logger = logger
 __version__ = _version
 
 _prompt_service = PromptService()

@@ -10,7 +10,7 @@ from pyutube.services.models import DownloadPreparation
 from pyutube.services.VideoService import VideoService
 from pyutube.services.YtDlpService import YtDlpService
 from pyutube.ui import console, error_console
-from pyutube.utils import handle_error
+from pyutube.utils import handle_error, logger
 
 
 class SingleDownloadService:
@@ -58,6 +58,10 @@ class SingleDownloadService:
 
     def prepare_download(self) -> DownloadPreparation:
         """Resolve the current video metadata and its downloadable formats."""
+        logger.log(
+            "SingleDownloadService.prepare_download",
+            {"url": self.url, "quality": self.quality, "is_audio": self.is_audio},
+        )
         preparation = self.video_service.get_selected_stream(
             self.video_service.search_process(),
             self.is_audio,
@@ -119,6 +123,14 @@ class SingleDownloadService:
 
         audio_filename = resolved_audio_filename
 
+        logger.log(
+            "SingleDownloadService.download_audio",
+            {
+                "audio_filename": audio_filename,
+                "audio_format": self.audio_format,
+                "path": self.path,
+            },
+        )
         try:
             console.print("⏳ Downloading the audio...", style="info")
             self.backend.download_audio(audio_filename, self.audio_format)
@@ -161,6 +173,14 @@ class SingleDownloadService:
 
         video_filename = resolved_video_filename
 
+        logger.log(
+            "SingleDownloadService.download_video",
+            {
+                "video_filename": video_filename,
+                "format_id": video_stream.get("format_id"),
+                "path": self.path,
+            },
+        )
         try:
             console.print("⏳ Downloading the video...", style="info")
             self.backend.download_video(video_filename, video_stream["format_id"])

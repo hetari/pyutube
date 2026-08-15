@@ -9,7 +9,7 @@ from yaspin.spinners import Spinners
 
 from pyutube.services.YtDlpService import YtDlpService
 from pyutube.ui import error_console
-from pyutube.utils import handle_error
+from pyutube.utils import handle_error, logger
 
 
 class VideoSearchService:
@@ -21,6 +21,7 @@ class VideoSearchService:
 
     def search_process(self) -> Any:
         """Create a metadata dictionary for the current URL."""
+        logger.log("VideoSearchService.search_process", {"url": self.url})
         try:
             video = self._video_search()
         except Exception as error:
@@ -28,9 +29,14 @@ class VideoSearchService:
             sys.exit(1)
 
         if not video:
+            logger.log("VideoSearchService.no_video_found", {"url": self.url})
             error_console.print("No stream available for the url.")
             sys.exit()
 
+        logger.log(
+            "VideoSearchService.video_found",
+            {"title": video.get("title"), "id": video.get("id")},
+        )
         return video
 
     @yaspin(
