@@ -31,3 +31,18 @@ def test_handle_error_output():
     assert "Exception Message: Test error message" in output
     assert "Traceback:" in output
     assert "https://github.com/Hetari/pyutube/issues" in output
+
+
+def test_handle_error_vpn_hint():
+    """Verify handle_error includes a VPN hint for network errors."""
+    buffer = io.StringIO()
+    test_exception = RuntimeError("Network is unreachable")
+
+    with patch.object(error_console, "_file", buffer):
+        try:
+            raise test_exception
+        except RuntimeError as err:
+            handle_error(err, context="Network Test Execution")
+
+    output = buffer.getvalue()
+    assert "Hint: If you are experiencing connection or network issues, try using a VPN." in output

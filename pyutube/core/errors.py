@@ -64,6 +64,26 @@ def handle_error(error: Exception, context: Optional[str] = None) -> None:
     )
     error_console.print(f"\n📄 [bold cyan]Execution Log Saved To:[/bold cyan] {log_path}")
 
+    network_keywords = [
+        "network",
+        "connection",
+        "unreachable",
+        "address family",
+        "timed out",
+        "downloaderror",
+        "http",
+        "url",
+        "dns",
+        "socket",
+        "101",
+        "-9",
+    ]
+    err_lower = f"{exc_type} {exc_msg}".lower()
+    if any(kw in err_lower for kw in network_keywords):
+        error_console.print(
+            "\n💡 [bold yellow]Hint:[/bold yellow] If you are experiencing connection or network issues, try using a VPN."
+        )
+
     error_console.print(
         "\n[bold yellow]Please report this in a GitHub issue:[/bold yellow] "
         "[link=https://github.com/Hetari/pyutube/issues]https://github.com/Hetari/pyutube/issues[/link]"

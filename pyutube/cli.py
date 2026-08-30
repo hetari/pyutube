@@ -134,6 +134,22 @@ def pyutube(
             sys.exit()
 
         yt_dlp_args = list(ctx.args)
+        if "--" in sys.argv:
+            dash_idx = sys.argv.index("--")
+            raw_before_dash = sys.argv[1:dash_idx]
+            raw_after_dash = sys.argv[dash_idx + 1 :]
+            yt_dlp_args = raw_after_dash
+            if path in raw_after_dash or path.startswith("-"):
+                non_option_args = [a for a in raw_before_dash if not a.startswith("-")]
+                if len(non_option_args) >= 2:
+                    path = non_option_args[1]
+                else:
+                    path = os.getcwd()
+        elif path and path.startswith("-"):
+            if path not in yt_dlp_args:
+                yt_dlp_args.insert(0, path)
+            path = os.getcwd()
+
         download_service = DownloadService(
             url,
             path,
