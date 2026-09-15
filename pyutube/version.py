@@ -1,3 +1,3 @@
 """Package version metadata."""
 
-__version__ = "1.6.21"
+__version__ = "1.7.0"
