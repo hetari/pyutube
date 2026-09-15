@@ -1,40 +1,158 @@
 """Select and describe the video streams available for download."""
 
-import sys
-from typing import Any
+from typing import List, Optional, Sequence, Tuple
 
 from termcolor import colored
 from yaspin import yaspin
 from yaspin.spinners import Spinners
 
-from pyutube.services.models import AvailableVideoStreams, DownloadPreparation
-from pyutube.ui import error_console
-from pyutube.utils import CANCEL_PREFIX, ask_resolution
+from pyutube.core.exceptions import (
+    DownloadCancelledError,
+    NoStreamAvailableError,
+)
+from pyutube.core.prompts import PromptService
+from pyutube.services.models import (
+    AvailableVideoStreams,
+    DownloadPreparation,
+    FormatInfo,
+    VideoInfo,
+)
+from pyutube.utils import CANCEL_PREFIX
+
+
+class FormatFilter:
+    """Helper utilities for filtering and scoring yt-dlp media formats."""
+
+    @staticmethod
+    def format_playback_priority(fmt: FormatInfo) -> Tuple[int, bool, int, float]:
+        """Rank formats prioritizing AVC/H.264 codecs, mp4 containers, and size/bitrate."""
+        vcodec = str(fmt.get("vcodec") or "").lower()
+        ext = str(fmt.get("ext") or "").lower()
+
+        if vcodec.startswith("avc1") or "h264" in vcodec:
+            codec_priority = 2
+        elif ext == "mp4":
+            codec_priority = 1
+        else:
+            codec_priority = 0
+
+        filesize = fmt.get("filesize") or fmt.get("filesize_approx") or 0
+        tbr = fmt.get("tbr") or 0.0
+        return codec_priority, ext == "mp4", filesize, float(tbr)
+
+    @classmethod
+    def available_video_formats(cls, formats: Sequence[FormatInfo]) -> List[FormatInfo]:
+        """Find the best video format for each available resolution height."""
+        preferred = [
+            fmt
+            for fmt in formats
+            if fmt.get("vcodec") != "none"
+            and fmt.get("acodec") == "none"
+            and fmt.get("height") is not None
+        ]
+        if not preferred:
+            preferred = [
+                fmt
+                for fmt in formats
+                if fmt.get("vcodec") != "none" and fmt.get("height") is not None
+            ]
+
+        unique_formats: dict[int, FormatInfo] = {}
+        for fmt in preferred:
+            height = int(fmt["height"])  # type: ignore
+            current = unique_formats.get(height)
+            if current is None:
+                unique_formats[height] = fmt
+                continue
+
+            current_priority = cls.format_playback_priority(current)
+            candidate_priority = cls.format_playback_priority(fmt)
+            if candidate_priority > current_priority:
+                unique_formats[height] = fmt
+            elif candidate_priority == current_priority:
+                current_size = current.get("filesize") or current.get("filesize_approx") or 0
+                candidate_size = fmt.get("filesize") or fmt.get("filesize_approx") or 0
+                if candidate_size > current_size:
+                    unique_formats[height] = fmt
+
+        return [unique_formats[key] for key in sorted(unique_formats)]
+
+    @classmethod
+    def best_audio_format(cls, formats: Sequence[FormatInfo]) -> Optional[FormatInfo]:
+        """Find the highest quality audio stream available."""
+        audio_formats = [
+            fmt
+            for fmt in formats
+            if fmt.get("acodec") != "none" and fmt.get("vcodec") == "none"
+        ]
+        if not audio_formats:
+            audio_formats = [
+                fmt for fmt in formats if fmt.get("acodec") != "none"
+            ]
+
+        if not audio_formats:
+            return None
+
+        def sort_key(fmt: FormatInfo) -> Tuple[float, float, int]:
+            return (
+                float(fmt.get("abr") or 0.0),
+                float(fmt.get("tbr") or 0.0),
+                int(fmt.get("filesize") or fmt.get("filesize_approx") or 0),
+            )
+
+        return max(audio_formats, key=sort_key)
+
+    @classmethod
+    def find_stream_at_or_below_height(
+        cls, streams: Sequence[FormatInfo], quality: str
+    ) -> Optional[FormatInfo]:
+        """Find the highest-ranked format at or below the target height."""
+        try:
+            target_height = int(str(quality).replace("p", ""))
+        except ValueError:
+            return None
+
+        matches = [
+            stream
+            for stream in streams
+            if stream.get("height") is not None and int(stream.get("height")) <= target_height  # type: ignore
+        ]
+        if not matches:
+            return None
+
+        def stream_sort_key(fmt: FormatInfo) -> Tuple[int, int, bool, int, float]:
+            height = int(fmt.get("height") or 0)
+            return (height,) + cls.format_playback_priority(fmt)
+
+        return max(matches, key=stream_sort_key)
 
 
 class StreamSelectionService:
     """Inspect streams and resolve the quality the user wants."""
 
-    def __init__(self, quality: str) -> None:
+    def __init__(
+        self,
+        quality: str,
+        prompt_service: Optional[PromptService] = None,
+    ) -> None:
         self.quality = quality
+        self.prompt_service = prompt_service or PromptService()
 
     @yaspin(text=colored("getting media streams", "green"), spinner=Spinners.point)
-    def get_available_resolutions(self, video: Any) -> AvailableVideoStreams:
+    def get_available_resolutions(self, video: VideoInfo) -> AvailableVideoStreams:
         """Return resolution labels, sizes, and the related formats."""
         formats = video.get("formats") or []
-        available_streams = self._available_video_formats(formats)
-        audio_stream = self._best_audio_format(formats)
+        available_streams = FormatFilter.available_video_formats(formats)
+        audio_stream = FormatFilter.best_audio_format(formats)
         if audio_stream is None:
-            error_console.print("No audio stream was found for this video.")
-            sys.exit(1)
+            raise NoStreamAvailableError("No audio stream was found for this video.")
 
         resolutions_with_sizes = self.get_video_resolutions_sizes(
             available_streams,
             audio_stream,
         )
         if not resolutions_with_sizes:
-            error_console.print("No downloadable video streams were found.")
-            sys.exit(1)
+            raise NoStreamAvailableError("No downloadable video streams were found.")
 
         resolutions_with_sizes = sorted(
             resolutions_with_sizes,
@@ -49,11 +167,10 @@ class StreamSelectionService:
             audio_stream=audio_stream,
         )
 
-    def get_video_streams(self, quality: str, streams: Any):
+    def get_video_streams(self, quality: str, streams: Sequence[FormatInfo]) -> FormatInfo:
         """Pick the best matching format for the requested quality cap."""
         if quality and quality.startswith(CANCEL_PREFIX):
-            error_console.print("❗ Cancel the download...")
-            sys.exit()
+            raise DownloadCancelledError("User cancelled download.")
 
         target_quality = self._normalize_quality(quality)
 
@@ -62,31 +179,30 @@ class StreamSelectionService:
             color="green",
             spinner=Spinners.dots13,
         ):
-            stream = self._find_stream_at_or_below_height(streams, target_quality)
+            stream = FormatFilter.find_stream_at_or_below_height(streams, target_quality)
 
             if stream:
                 return stream
 
-            error_console.print("❗ No matching video quality was found.")
-            sys.exit(1)
+            raise NoStreamAvailableError("No matching video quality was found.")
 
     def get_selected_stream(
         self,
-        video: Any,
+        video: VideoInfo,
         is_audio: bool = False,
     ) -> DownloadPreparation:
         """Return the streams needed for the selected download mode."""
         available = self.get_available_resolutions(video)
 
         if not available.streams:
-            error_console.print("❗ Cancel the download...")
-            sys.exit()
+            raise DownloadCancelledError("No streams available, cancelling download.")
 
         if not is_audio:
-            self.quality = self.quality or ask_resolution(available.resolutions, available.sizes)
+            self.quality = self.quality or self.prompt_service.ask_resolution(
+                available.resolutions, available.sizes
+            )
             if not self.quality or self.quality.startswith(CANCEL_PREFIX):
-                error_console.print("❗ Cancel the download...")
-                sys.exit()
+                raise DownloadCancelledError("User cancelled download.")
 
         return DownloadPreparation(
             video=video,
@@ -96,17 +212,23 @@ class StreamSelectionService:
         )
 
     @staticmethod
-    def get_video_resolutions_sizes(available_streams, audio_stream):
+    def get_video_resolutions_sizes(
+        available_streams: Sequence[FormatInfo],
+        audio_stream: Optional[FormatInfo],
+    ) -> List[Tuple[str, str]]:
         """Return resolution labels paired with estimated file sizes."""
         if not available_streams:
             return []
 
-        audio_filesize = (
-            audio_stream.get("filesize")
-            or audio_stream.get("filesize_approx")
-            or 0
-        )
-        resolutions_with_sizes = []
+        audio_filesize = 0
+        if audio_stream:
+            audio_filesize = (
+                audio_stream.get("filesize")
+                or audio_stream.get("filesize_approx")
+                or 0
+            )
+
+        resolutions_with_sizes: List[Tuple[str, str]] = []
         one_mb = 1024 * 1024
         one_gb = one_mb * 1024
 
@@ -131,111 +253,11 @@ class StreamSelectionService:
         return resolutions_with_sizes
 
     @staticmethod
-    def _resolution_sort_key(item):
+    def _resolution_sort_key(item: Tuple[str, str]) -> float:
         resolution, _ = item
         numeric_value = resolution[:-1]
-        return int(numeric_value) if numeric_value.isdigit() else float("inf")
+        return float(int(numeric_value)) if numeric_value.isdigit() else float("inf")
 
     @staticmethod
     def _normalize_quality(quality: str) -> str:
         return quality[:-1] if quality.endswith("p") else quality
-
-    @staticmethod
-    def _available_video_formats(formats):
-        preferred = [
-            fmt
-            for fmt in formats
-            if fmt.get("vcodec") != "none"
-            and fmt.get("acodec") == "none"
-            and fmt.get("height") is not None
-        ]
-        if not preferred:
-            preferred = [
-                fmt
-                for fmt in formats
-                if fmt.get("vcodec") != "none" and fmt.get("height") is not None
-            ]
-
-        unique_formats = {}
-        for fmt in preferred:
-            height = int(fmt["height"])
-            current = unique_formats.get(height)
-            if current is None:
-                unique_formats[height] = fmt
-                continue
-
-            current_priority = StreamSelectionService._format_playback_priority(current)
-            candidate_priority = StreamSelectionService._format_playback_priority(fmt)
-            if candidate_priority > current_priority:
-                unique_formats[height] = fmt
-            elif candidate_priority == current_priority:
-                current_size = (
-                    current.get("filesize") or current.get("filesize_approx") or 0
-                )
-                candidate_size = (
-                    fmt.get("filesize") or fmt.get("filesize_approx") or 0
-                )
-                if candidate_size > current_size:
-                    unique_formats[height] = fmt
-
-        return [unique_formats[key] for key in sorted(unique_formats)]
-
-    @staticmethod
-    def _format_playback_priority(fmt):
-        vcodec = str(fmt.get("vcodec") or "").lower()
-        ext = str(fmt.get("ext") or "").lower()
-
-        if vcodec.startswith("avc1") or "h264" in vcodec:
-            codec_priority = 2
-        elif ext == "mp4":
-            codec_priority = 1
-        else:
-            codec_priority = 0
-
-        return codec_priority, ext == "mp4", fmt.get("filesize") or fmt.get("filesize_approx") or 0, fmt.get("tbr") or 0
-
-    @staticmethod
-    def _find_stream_at_or_below_height(streams, quality):
-        try:
-            target_height = int(str(quality).replace("p", ""))
-        except ValueError:
-            return None
-
-        matches = [
-            stream
-            for stream in streams
-            if stream.get("height") is not None and int(stream.get("height")) <= target_height
-        ]
-        if not matches:
-            return None
-
-        return max(matches, key=StreamSelectionService._stream_sort_key)
-
-    @staticmethod
-    def _stream_sort_key(fmt):
-        height = int(fmt.get("height") or 0)
-        return (height,) + StreamSelectionService._format_playback_priority(fmt)
-
-    @staticmethod
-    def _best_audio_format(formats):
-        audio_formats = [
-            fmt
-            for fmt in formats
-            if fmt.get("acodec") != "none" and fmt.get("vcodec") == "none"
-        ]
-        if not audio_formats:
-            audio_formats = [
-                fmt for fmt in formats if fmt.get("acodec") != "none"
-            ]
-
-        if not audio_formats:
-            return None
-
-        def sort_key(fmt):
-            return (
-                fmt.get("abr") or 0,
-                fmt.get("tbr") or 0,
-                fmt.get("filesize") or fmt.get("filesize_approx") or 0,
-            )
-
-        return max(audio_formats, key=sort_key)

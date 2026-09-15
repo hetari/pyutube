@@ -1,7 +1,13 @@
 """Compatibility façade for the split video services."""
 
-from typing import Optional
+from typing import Optional, Sequence
 
+from pyutube.services.models import (
+    AvailableVideoStreams,
+    DownloadPreparation,
+    FormatInfo,
+    VideoInfo,
+)
 from pyutube.services.StreamSelectionService import StreamSelectionService
 from pyutube.services.VideoSearchService import VideoSearchService
 
@@ -13,7 +19,7 @@ class VideoService:
         self,
         url: str,
         quality: str,
-        path: str,
+        path: str = "",
         ytdlp_args: Optional[list[str]] = None,
     ) -> None:
         self.url = url
@@ -28,19 +34,19 @@ class VideoService:
         self.search_service.ytdlp_args = list(self.ytdlp_args)
         self.stream_selection_service.quality = self.quality
 
-    def search_process(self):
+    def search_process(self) -> VideoInfo:
         self._sync()
         return self.search_service.search_process()
 
-    def get_available_resolutions(self, video):
+    def get_available_resolutions(self, video: VideoInfo) -> AvailableVideoStreams:
         self._sync()
         return self.stream_selection_service.get_available_resolutions(video)
 
-    def get_video_streams(self, quality: str, streams):
+    def get_video_streams(self, quality: str, streams: Sequence[FormatInfo]) -> FormatInfo:
         self._sync()
         return self.stream_selection_service.get_video_streams(quality, streams)
 
-    def get_selected_stream(self, video, is_audio: bool = False):
+    def get_selected_stream(self, video: VideoInfo, is_audio: bool = False) -> DownloadPreparation:
         self._sync()
         preparation = self.stream_selection_service.get_selected_stream(
             video,

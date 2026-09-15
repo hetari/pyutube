@@ -1,27 +1,33 @@
+"""Playlist metadata collection and user selection handling."""
+
 import os
 import re
-import sys
 from concurrent.futures import ThreadPoolExecutor
-from typing import Optional
+from typing import List, Optional, Tuple
 
+from pyutube.core.exceptions import DownloadCancelledError
+from pyutube.core.prompts import PromptService
 from pyutube.services.models import PlaylistDownloadPlan
 from pyutube.services.YtDlpService import YtDlpService
-from pyutube.utils import (
-    ask_for_make_playlist_in_order,
-    ask_playlist_download_mode,
-    ask_playlist_video_names,
-    asking_video_or_audio,
-    console,
-    safe_filename,
-)
+from pyutube.ui import console
+from pyutube.utils import safe_filename
 
 
 class PlaylistHandler:
-    def __init__(self, url: str, path: str, ytdlp_args: Optional[list[str]] = None):
+    """Collect playlist items, handle ordering, and prompt for user choices."""
+
+    def __init__(
+        self,
+        url: str,
+        path: str,
+        ytdlp_args: Optional[list[str]] = None,
+        prompt_service: Optional[PromptService] = None,
+    ) -> None:
         self.url = url
         self.path = path
-        self.playlist_videos: list = []
+        self.playlist_videos: List[Tuple[str, str]] = []
         self.ytdlp_args = list(ytdlp_args or [])
+        self.prompt_service = prompt_service or PromptService()
 
     def process_playlist(self) -> Optional[PlaylistDownloadPlan]:
         """Collect playlist metadata and ask the user what to download."""
@@ -36,7 +42,7 @@ class PlaylistHandler:
         playlist_videos = playlist.get("entries") or []
         playlist_total = playlist.get("playlist_count") or len(playlist_videos)
 
-        make_in_order = ask_for_make_playlist_in_order()
+        make_in_order = self.prompt_service.ask_for_make_playlist_in_order()
         if make_in_order is None:
             console.print("Cancelled")
             return None
@@ -58,7 +64,7 @@ class PlaylistHandler:
         console.print("Checking if the videos are already downloaded...")
         new_path = self.check_for_downloaded_videos(playlist_title, playlist_total)
 
-        download_mode = ask_playlist_download_mode()
+        download_mode = self.prompt_service.ask_playlist_download_mode()
         if download_mode is None:
             console.print("Cancelled")
             return None
@@ -66,12 +72,12 @@ class PlaylistHandler:
             videos_selected = [video_id for _title, video_id in self.playlist_videos]
         else:
             console.print("Choose which videos you want to download", style="info")
-            videos_selected = ask_playlist_video_names(self.playlist_videos)
+            videos_selected = self.prompt_service.ask_playlist_video_names(self.playlist_videos)
             if videos_selected is None:
                 console.print("Cancelled")
                 return None
 
-        is_audio = asking_video_or_audio()
+        is_audio = self.prompt_service.asking_video_or_audio()
         if is_audio is None:
             console.print("Cancelled")
             return None
@@ -107,8 +113,9 @@ class PlaylistHandler:
         console.print(f"Total videos: {total}\n", style="info")
 
     def create_playlist_folder(self, title):
-        os.makedirs(title, exist_ok=True)
-        return os.path.join(self.path, title)
+        folder = os.path.join(self.path, title)
+        os.makedirs(folder, exist_ok=True)
+        return folder
 
     def check_for_downloaded_videos(self, title, total):
         new_path = self.create_playlist_folder(safe_filename(title))
@@ -124,11 +131,9 @@ class PlaylistHandler:
         ]
 
         if not self.playlist_videos:
-            console.print(
-                f"All playlist videos are already downloaded in this directory, see '{title}' folder",
-                style="info",
+            raise DownloadCancelledError(
+                f"All playlist videos are already downloaded in this directory, see '{title}' folder"
             )
-            sys.exit()
 
         self.show_playlist_info(title, total)
         return new_path

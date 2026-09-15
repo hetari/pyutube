@@ -1,15 +1,15 @@
-"""Search for a YouTube video."""
+"""Search for a YouTube video and extract its metadata."""
 
-import sys
-from typing import Any, Optional
+from typing import Optional
 
 from termcolor import colored
 from yaspin import yaspin
 from yaspin.spinners import Spinners
 
+from pyutube.core.exceptions import NoVideoFoundError
+from pyutube.core.logger import logger
+from pyutube.services.models import VideoInfo
 from pyutube.services.YtDlpService import YtDlpService
-from pyutube.ui import error_console
-from pyutube.utils import handle_error, logger
 
 
 class VideoSearchService:
@@ -19,19 +19,14 @@ class VideoSearchService:
         self.url = url
         self.ytdlp_args = list(ytdlp_args or [])
 
-    def search_process(self) -> Any:
+    def search_process(self) -> VideoInfo:
         """Create a metadata dictionary for the current URL."""
         logger.log("VideoSearchService.search_process", {"url": self.url})
-        try:
-            video = self._video_search()
-        except Exception as error:
-            handle_error(error, context="Searching video metadata")
-            sys.exit(1)
+        video = self._video_search()
 
         if not video:
             logger.log("VideoSearchService.no_video_found", {"url": self.url})
-            error_console.print("No stream available for the url.")
-            sys.exit()
+            raise NoVideoFoundError(f"No stream available for the url: {self.url}")
 
         logger.log(
             "VideoSearchService.video_found",
@@ -44,7 +39,7 @@ class VideoSearchService:
         color="green",
         spinner=Spinners.point,
     )
-    def _video_search(self) -> Any:
+    def _video_search(self) -> VideoInfo:
         return YtDlpService(self.url, "", self.ytdlp_args).extract_info(
             noplaylist=True
-        )
+        )  # type: ignore

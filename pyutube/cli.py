@@ -49,18 +49,22 @@ import sys
 
 import typer
 
+from pyutube.core.errors import handle_error
+from pyutube.core.exceptions import (
+    DownloadCancelledError,
+    InvalidInputError,
+    NoStreamAvailableError,
+    NoVideoFoundError,
+    PyutubeError,
+)
+from pyutube.core.logger import logger
+from pyutube.core.network import check_internet_connection
+from pyutube.core.update_checker import UpdateChecker
 from pyutube.handlers import URLHandler
 from pyutube.services.DownloadService import DownloadService
-from pyutube.utils import (
-    __version__,
-    check_for_updates,
-    check_internet_connection,
-    clear,
-    console,
-    error_console,
-    handle_error,
-    logger,
-)
+from pyutube.ui import console, error_console
+from pyutube.utils import clear
+from pyutube.version import __version__
 
 app = typer.Typer(
     name="pyutube",
@@ -104,16 +108,16 @@ def pyutube(
         console.print(f"Pyutube {__version__}")
         sys.exit()
 
-    check_for_updates()
+    UpdateChecker().check_for_updates()
 
     if url is None:
         error_console.print("❗ Missing argument 'URL'.")
-        sys.exit()
+        sys.exit(1)
 
     clear()
 
     if not check_internet_connection():
-        sys.exit()
+        sys.exit(1)
 
     logger.log(
         "cli.pyutube",
@@ -131,7 +135,7 @@ def pyutube(
         is_valid_link, link_type = url_handler.validate()
 
         if not is_valid_link:
-            sys.exit()
+            sys.exit(1)
 
         yt_dlp_args = list(ctx.args)
         if "--" in sys.argv:
@@ -180,7 +184,16 @@ def pyutube(
 
         else:
             error_console.print("❗ Unsupported link type.")
-            sys.exit()
+            sys.exit(1)
+    except DownloadCancelledError as e:
+        console.print(f"\n{e}", style="yellow")
+        sys.exit(0)
+    except (NoStreamAvailableError, NoVideoFoundError, InvalidInputError) as e:
+        error_console.print(f"❗ {e}")
+        sys.exit(1)
+    except PyutubeError as e:
+        error_console.print(f"❗ {e}")
+        sys.exit(1)
     except SystemExit:
         raise
     except (KeyboardInterrupt, typer.Abort):

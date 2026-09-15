@@ -5,7 +5,7 @@ from typing import Any, Dict, List, Optional
 
 from yt_dlp import YoutubeDL, parse_options
 
-from pyutube.utils import logger
+from pyutube.core.logger import logger
 
 
 class YtDlpService:

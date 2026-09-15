@@ -1,22 +1,23 @@
-import os
-from typing import Any
+"""File I/O and naming helpers for downloaded media."""
 
+import os
+from typing import Any, Mapping, Optional, Union
+
+from pyutube.services.models import FormatInfo, VideoInfo
 from pyutube.utils import safe_filename
 
 
 class FileService:
-    def save_file(self, media: Any, filename: str, path: str) -> None:
-        """Download the selected stream to the target path."""
-        media.download(output_path=path, filename=filename)
+    """Generate filenames and check file existence on disk."""
 
     def generate_filename(
         self,
-        media: Any,
+        media: Optional[Union[FormatInfo, VideoInfo, Mapping[str, Any]]] = None,
         is_audio: bool = False,
         filename: str = "",
         title: str = "",
-    ):
-        """Build a filename from the stream metadata."""
+    ) -> str:
+        """Build a filesystem-safe filename from stream or video metadata."""
         title = filename or title or self._media_title(media)
         title = safe_filename(title)
 
@@ -32,13 +33,13 @@ class FileService:
         return os.path.isfile(os.path.join(path, filename))
 
     @staticmethod
-    def _media_title(media: Any) -> str:
-        if isinstance(media, dict):
+    def _media_title(media: Optional[Union[FormatInfo, VideoInfo, Mapping[str, Any]]]) -> str:
+        if isinstance(media, (dict, Mapping)):
             return (
-                media.get("title")
+                str(media.get("title")
                 or media.get("fulltitle")
                 or media.get("id")
-                or "download"
+                or "download")
             )
 
         return (
@@ -48,16 +49,16 @@ class FileService:
         )
 
     @staticmethod
-    def _media_resolution(media: Any) -> str:
-        if isinstance(media, dict):
+    def _media_resolution(media: Optional[Union[FormatInfo, VideoInfo, Mapping[str, Any]]]) -> str:
+        if isinstance(media, (dict, Mapping)):
             height = media.get("height")
             if height:
                 return f"{height}p"
 
             resolution = media.get("resolution")
             if resolution:
-                return resolution
+                return str(resolution)
 
-            return media.get("format_id") or "video"
+            return str(media.get("format_id") or "video")
 
         return getattr(media, "resolution", None) or "video"

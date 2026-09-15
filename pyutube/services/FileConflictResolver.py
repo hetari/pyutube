@@ -1,24 +1,30 @@
 """Resolve filename conflicts before a download starts."""
 
-import sys
-from typing import Any, Optional
+from typing import Optional
 
 from termcolor import colored
 
+from pyutube.core.exceptions import DownloadCancelledError, InvalidInputError
+from pyutube.core.prompts import PromptService
 from pyutube.services.FileService import FileService
-from pyutube.ui import console, error_console
-from pyutube.utils import ask_rename_file
+from pyutube.services.models import VideoInfo
+from pyutube.ui import console
 
 
 class FileConflictResolver:
     """Handle overwrite, rename, and cancel decisions for existing files."""
 
-    def __init__(self, file_service: Optional[Any] = None) -> None:
+    def __init__(
+        self,
+        file_service: Optional[FileService] = None,
+        prompt_service: Optional[PromptService] = None,
+    ) -> None:
         self.file_service = file_service or FileService()
+        self.prompt_service = prompt_service or PromptService()
 
     def resolve(
         self,
-        video: Any,
+        video: VideoInfo,
         filename: str,
         path: str,
         is_audio: bool = False,
@@ -27,17 +33,15 @@ class FileConflictResolver:
         if not self.file_service.is_file_exists(path, filename):
             return filename
 
-        choice = ask_rename_file(filename)
+        choice = self.prompt_service.ask_rename_file(filename)
         if choice is None:
-            console.print("Download canceled", style="info")
-            sys.exit()
+            raise DownloadCancelledError("Download canceled by user.")
 
         choice = choice.lower()
         if choice.startswith("rename"):
             new_filename = self.prompt_new_filename(filename)
             if not new_filename:
-                error_console.print("Invalid filename")
-                sys.exit(1)
+                raise InvalidInputError("Invalid filename provided.")
 
             return self.file_service.generate_filename(video, is_audio, new_filename)
 
@@ -47,8 +51,7 @@ class FileConflictResolver:
             return None
 
         if choice.startswith("cancel"):
-            console.print("Download canceled", style="info")
-            sys.exit()
+            raise DownloadCancelledError("Download canceled by user.")
 
         return filename
 

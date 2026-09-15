@@ -1,11 +1,11 @@
 """High-level download coordinator for single videos and playlists."""
 
-from typing import Optional
+from typing import Any, Optional
 
-from pyutube.services.models import DownloadPreparation
+from pyutube.core.prompts import PromptService
+from pyutube.services.models import DownloadPreparation, FormatInfo, VideoInfo
 from pyutube.services.PlaylistDownloadService import PlaylistDownloadService
 from pyutube.services.SingleDownloadService import SingleDownloadService
-from pyutube.utils import asking_video_or_audio
 
 
 class DownloadService:
@@ -15,10 +15,11 @@ class DownloadService:
         self,
         url: str,
         path: str,
-        quality: str,
+        quality: str = "",
         is_audio: bool = False,
         make_playlist_in_order: bool = False,
         ytdlp_args: Optional[list[str]] = None,
+        prompt_service: Optional[PromptService] = None,
     ):
         self.url = url
         self.path = path
@@ -27,6 +28,7 @@ class DownloadService:
         self.audio_format = "mp3"
         self.make_playlist_in_order = make_playlist_in_order
         self.ytdlp_args = list(ytdlp_args or [])
+        self.prompt_service = prompt_service or PromptService()
 
         self.single_download_service = SingleDownloadService(
             url=self.url,
@@ -41,21 +43,13 @@ class DownloadService:
             self.ytdlp_args,
         )
 
-        self._sync_services()
+    @property
+    def video_service(self) -> Any:
+        return self.single_download_service.video_service
 
-    def _sync_services(self) -> None:
-        """Keep the coordinator and the single-download worker aligned."""
-        self.single_download_service.url = self.url
-        self.single_download_service.path = self.path
-        self.single_download_service.quality = self.quality
-        self.single_download_service.is_audio = self.is_audio
-        self.single_download_service.make_playlist_in_order = (
-            self.make_playlist_in_order
-        )
-        self.single_download_service.ytdlp_args = list(self.ytdlp_args)
-        self.single_download_service.refresh_video_service()
-        self.video_service = self.single_download_service.video_service
-        self.file_service = self.single_download_service.file_service
+    @property
+    def file_service(self) -> Any:
+        return self.single_download_service.file_service
 
     def _build_single_download_service(
         self,
@@ -73,21 +67,20 @@ class DownloadService:
             is_audio=is_audio,
             make_playlist_in_order=make_playlist_in_order,
             ytdlp_args=self.ytdlp_args,
-            file_service=self.file_service,
+            file_service=self.single_download_service.file_service,
             conflict_resolver=self.single_download_service.conflict_resolver,
         )
 
-    def download(self, title_number: int = 0):
-        self._sync_services()
+    def download(self, title_number: int = 0) -> Any:
+        self.single_download_service.is_audio = self.is_audio
         return self.single_download_service.download(title_number)
 
     def download_audio(
         self,
-        video,
-        video_audio,
+        video: VideoInfo,
+        video_audio: Optional[FormatInfo],
         title_number: int = 0,
-    ):
-        self._sync_services()
+    ) -> str:
         return self.single_download_service.download_audio(
             video,
             video_audio,
@@ -96,27 +89,26 @@ class DownloadService:
 
     def download_video(
         self,
-        video,
-        video_stream,
+        video: VideoInfo,
+        video_stream: FormatInfo,
         title_number: int = 0,
-    ):
-        self._sync_services()
+    ) -> str:
         return self.single_download_service.download_video(
             video,
             video_stream,
             title_number,
         )
 
-    def asking_video_or_audio(self):
-        choice = asking_video_or_audio()
+    def asking_video_or_audio(self) -> None:
+        choice = self.prompt_service.asking_video_or_audio()
         if choice is None:
             return
 
         self.is_audio = choice
+        self.single_download_service.is_audio = choice
         self.download()
 
-    def get_playlist_links(self):
-        self._sync_services()
+    def get_playlist_links(self) -> None:
         self.playlist_download_service.download_playlist(
             self.url,
             self.path,
@@ -124,9 +116,7 @@ class DownloadService:
         )
 
     def download_preparing(self) -> DownloadPreparation:
-        self._sync_services()
-        preparation = (
-            self.single_download_service.prepare_download()
-        )
+        self.single_download_service.is_audio = self.is_audio
+        preparation = self.single_download_service.prepare_download()
         self.quality = preparation.quality
         return preparation
