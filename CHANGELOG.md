@@ -1,3 +1,31 @@
+### 1.7.0 (2026-09-15)
+
+##### Chores
+
+*  bump version to 1.7.0 (d98c0f99)
+*  update network error hint message and corresponding test (7d94c3ee)
+*  bump version to 1.6.1 and update changelog with recent features and refactors (cdf08d41)
+
+##### New Features
+
+*  add network error VPN hint and improve CLI argument parsing for yt-dlp flags (ec86c78d)
+*  implement execution flow logger to record diagnostic breadcrumbs and diagnostic logs (680a5a1e)
+*  implement centralized error handling and diagnostics reporting across services and CLI (01b8f657)
+*  add playlist download mode selection menu and update version to 1.6.2 (738d094f)
+*  enable passing arbitrary yt-dlp options via CLI command separator (daccde1f)
+
+##### Refactors
+
+*  modernize download pipeline, typing models, and error flow (fa251ea1)
+*  introduce custom exceptions and clean up core utilities and configs (52d1c5d3)
+*  standardize audio downloads to MP3 format and remove the redundant --mp3 CLI flag (e765eadf)
+*  simplify and clean up project documentation files (cdfd6803)
+
+##### Tests
+
+*  enhance version comparison tests in UpdateChecker to use dynamic versioning (1047a084)
+*  add comprehensive unit tests for core, services, and handlers (0008018d)
+
 #### 1.6.1 (2026-05-18)
 
 ##### Chores
