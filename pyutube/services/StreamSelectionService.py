@@ -198,11 +198,12 @@ class StreamSelectionService:
             raise DownloadCancelledError("No streams available, cancelling download.")
 
         if not is_audio:
-            self.quality = self.quality or self.prompt_service.ask_resolution(
+            selected_quality = self.quality or self.prompt_service.ask_resolution(
                 available.resolutions, available.sizes
             )
-            if not self.quality or self.quality.startswith(CANCEL_PREFIX):
+            if not selected_quality or selected_quality.startswith(CANCEL_PREFIX):
                 raise DownloadCancelledError("User cancelled download.")
+            self.quality = selected_quality
 
         return DownloadPreparation(
             video=video,

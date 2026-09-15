@@ -72,10 +72,11 @@ class PlaylistHandler:
             videos_selected = [video_id for _title, video_id in self.playlist_videos]
         else:
             console.print("Choose which videos you want to download", style="info")
-            videos_selected = self.prompt_service.ask_playlist_video_names(self.playlist_videos)
-            if videos_selected is None:
+            picked = self.prompt_service.ask_playlist_video_names(self.playlist_videos)
+            if picked is None:
                 console.print("Cancelled")
                 return None
+            videos_selected = [video_id for _title, video_id in picked]
 
         is_audio = self.prompt_service.asking_video_or_audio()
         if is_audio is None:

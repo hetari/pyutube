@@ -1,6 +1,6 @@
 """Prompt helpers used by the CLI and download workflows."""
 
-from typing import Any, Optional
+from typing import Any, List, Optional, Tuple
 
 import inquirer
 from termcolor import colored
@@ -61,7 +61,9 @@ class PromptService:
         )
         return self._prompt_choice(question)
 
-    def ask_playlist_video_names(self, videos) -> Optional[list]:
+    def ask_playlist_video_names(
+        self, videos: List[Tuple[str, str]]
+    ) -> Optional[List[Tuple[str, str]]]:
         note = colored("NOTE:", "cyan")
         select_one = colored("<space>", "red")
         select_all = colored("<ctrl+a>", "red")
