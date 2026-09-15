@@ -51,7 +51,7 @@ setup(
 
     include_package_data=True,
 
-    python_requires=">=3.6",
+    python_requires=">=3.9",
 
     install_requires=[
         "yt-dlp==2026.03.17",

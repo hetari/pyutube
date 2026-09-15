@@ -18,18 +18,18 @@ class YouTubeURLParser:
 
     VIDEO_ID_PATTERN = re.compile(r"^[a-zA-Z0-9_-]{11}$")
     VIDEO_PATTERN = re.compile(
-        r"^(?:https?://)?(?:www\.)?"
+        r"^(?:https?://)?(?:www\.|m\.)?"
         r"(?:youtube(?:-nocookie)?\.com/(?:(?:watch\?(?:feature=share&)?v=)|embed/|v/|live_stream\?channel=|live/)"
         r"|youtu\.be/)([a-zA-Z0-9_-]{11})"
     )
     SHORTS_PATTERN = re.compile(
-        r"^(?:https?://)?(?:www\.)?youtube\.com/shorts/([a-zA-Z0-9_-]+)"
+        r"^(?:https?://)?(?:www\.|m\.)?youtube\.com/shorts/([a-zA-Z0-9_-]+)"
     )
     PLAYLIST_PATTERN = re.compile(
-        r"^(?:https?://)?(?:www\.)?youtube\.com/playlist\?list=([a-zA-Z0-9_-]+)"
+        r"^(?:https?://)?(?:www\.|m\.)?youtube\.com/playlist\?list=([a-zA-Z0-9_-]+)"
     )
     WATCH_PLAYLIST_PATTERN = re.compile(
-        r"^(?:https?://)?(?:www\.)?youtube\.com/watch\?v=[a-zA-Z0-9_-]{11}&list=([a-zA-Z0-9_-]+)"
+        r"^(?:https?://)?(?:www\.|m\.)?youtube\.com/watch\?v=[a-zA-Z0-9_-]{11}&list=([a-zA-Z0-9_-]+)"
     )
 
     def __init__(self, url: str) -> None:

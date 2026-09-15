@@ -1,8 +1,8 @@
 # remove the previous build files
 rm -rf dist
 
-# Uninstall the package 'pyutube' with the '-y' flag to confirm the uninstallation without user prompt
-pip uninstall pyutube -y --break-system-packages
+# Uninstall the package 'pyutube' — run this inside a virtualenv
+pip uninstall pyutube -y
 
 # Build a wheel distribution package using the 'setup.py' file
 python3 setup.py sdist bdist_wheel
