@@ -44,5 +44,8 @@ def test_handle_error_vpn_hint():
         except RuntimeError as err:
             handle_error(err, context="Network Test Execution")
 
-    output = buffer.getvalue()
-    assert "Hint: If you are experiencing connection or network issues, try using a VPN." in output
+    output = " ".join(buffer.getvalue().split())
+    assert (
+        "Hint: If you are experiencing connection or network issues, try opening a VPN and trying again. If the issue happens again while the VPN is open, please report the bug."
+        in output
+    )

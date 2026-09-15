@@ -136,7 +136,7 @@ def handle_error(error: Exception, context: Optional[str] = None) -> None:
     err_lower = f"{exc_type} {exc_msg}".lower()
     if any(kw in err_lower for kw in network_keywords):
         error_console.print(
-            "\n💡 [bold yellow]Hint:[/bold yellow] If you are experiencing connection or network issues, try using a VPN."
+            "\n💡 [bold yellow]Hint:[/bold yellow] If you are experiencing connection or network issues, try opening a VPN and trying again. If the issue happens again while the VPN is open, please report the bug."
         )
 
     error_console.print(
