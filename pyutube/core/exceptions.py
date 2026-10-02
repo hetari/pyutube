@@ -67,11 +67,18 @@ def _log_directory() -> Path:
 def handle_error(error: Exception, context: Optional[str] = None) -> None:
     """Format and print a detailed error report for troubleshooting and GitHub issues."""
     try:
-        import yt_dlp
-
-        ytdlp_ver = getattr(yt_dlp, "__version__", "unknown")
+        from yt_dlp.version import __version__ as ytdlp_ver
     except Exception:
-        ytdlp_ver = "unknown"
+        try:
+            import yt_dlp
+
+            ytdlp_ver = getattr(yt_dlp, "__version__", None)
+            if not ytdlp_ver:
+                import importlib.metadata
+
+                ytdlp_ver = importlib.metadata.version("yt-dlp")
+        except Exception:
+            ytdlp_ver = "unknown"
 
     exc_type = type(error).__name__
     exc_msg = str(error) or "No error message provided."

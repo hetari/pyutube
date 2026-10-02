@@ -24,7 +24,10 @@ def test_handle_error_output():
     assert "An unexpected error occurred!" in output
     assert "Context: Unit Test Execution" in output
     assert "Pyutube Version:" in output
-    assert "yt-dlp Version:" in output
+    from yt_dlp.version import __version__ as yt_dlp_version
+
+    assert f"yt-dlp Version:  {yt_dlp_version}" in output
+    assert "yt-dlp Version:  unknown" not in output
     assert "Python Version:" in output
     assert "OS / Platform:" in output
     assert "Exception Type:    RuntimeError" in output
