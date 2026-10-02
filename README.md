@@ -59,6 +59,18 @@ Short version:
 - Playlist URLs first show a selection menu so you can choose specific items or download all.
 - Anything after `--` is forwarded to `yt-dlp`.
 
+> [!IMPORTANT]
+> **Facing `Sign in to confirm you’re not a bot`, `HTTP Error 403: Forbidden`, or `The page needs to be reloaded`?**
+>
+> YouTube enforces bot-detection and client-verification challenges. Pass your browser cookies and enable the challenge solver by forwarding options after `--`:
+>
+> ```bash
+> pyutube "<youtube-url>" -- --cookies-from-browser chrome --remote-components ejs:github
+> ```
+>
+> - Replace `chrome` with your preferred browser (e.g., `firefox`, `edge`, `brave`).
+> - When downloading single videos, ensure personal playlist parameters like `?list=LL` are removed from the URL.
+
 Check the CLI help:
 
 ```bash
