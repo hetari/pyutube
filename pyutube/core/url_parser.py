@@ -68,10 +68,11 @@ class YouTubeURLParser:
 
     def normalize(self) -> str:
         """Return a canonical watch URL when the input is a bare video id."""
-        if self.is_video_id(self.url):
-            return f"https://www.youtube.com/watch?v={self.url}"
+        url = self.url.strip()
+        if self.is_video_id(url):
+            return f"https://www.youtube.com/watch?v={url}"
 
-        return self.url
+        return url
 
     def validate(self) -> Tuple[bool, str]:
         """Return the validation result for the configured URL."""
