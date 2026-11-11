@@ -58,3 +58,18 @@ class TestYouTubeURLParser:
         assert is_youtube_video("https://www.youtube.com/watch?v=dQw4w9WgXcQ")
         is_valid, _ = is_youtube_link("https://www.youtube.com/watch?v=dQw4w9WgXcQ")
         assert is_valid
+
+    def test_padded_url_is_accepted(self):
+        # Copy-pasted URLs often carry surrounding whitespace/newlines.
+        parser = YouTubeURLParser("  https://www.youtube.com/watch?v=dQw4w9WgXcQ\n")
+        assert parser.normalize() == "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+        is_valid, link_type = parser.validate()
+        assert is_valid
+        assert link_type == "video"
+
+    def test_padded_video_id_is_accepted(self):
+        parser = YouTubeURLParser("  dQw4w9WgXcQ  ")
+        assert parser.normalize() == "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+        is_valid, link_type = parser.validate()
+        assert is_valid
+        assert link_type == "video"
